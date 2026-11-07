@@ -24,27 +24,24 @@ export default function Overview() {
     <section className="sec">
       <header className="sec-head">
         <h2 className="sec-title">
-          <span className="en">Overview</span>
           <span className="ja">概要</span>
         </h2>
       </header>
 
       <div className="ov-grid">
         <div className="ov-cover">
-          <a href={`#/w/${work.id}/cover`} className="ov-cover-link" aria-label="表紙をつくる">
-            <CoverThumb work={work} />
-          </a>
+          <CoverThumb work={work} />
           <a className="btn ghost small" href={`#/w/${work.id}/cover`}>
             <Icon name="image" size={16} /> {work.coverImageId ? '表紙を編集' : '表紙をつくる'}
           </a>
         </div>
 
         <div className="ov-fields">
-          <TextField label="タイトル" big value={work.title} onChange={set('title')} placeholder="作品のタイトル" />
-          <TextField label="副題" value={work.subtitle} onChange={set('subtitle')} placeholder="サブタイトル（任意）" />
+          <TextField label="タイトル" big value={work.title} onChange={set('title')} />
+          <TextField label="副題" value={work.subtitle} onChange={set('subtitle')} />
           <div className="field-row">
             <TextField label="ペンネーム" value={work.penName} onChange={set('penName')} />
-            <TextField label="ジャンル" value={work.genre} onChange={set('genre')} placeholder="例：ファンタジー、恋愛" />
+            <TextField label="ジャンル" value={work.genre} onChange={set('genre')} />
             <label className="field">
               <span className="field-label">状態</span>
               <select
@@ -65,11 +62,11 @@ export default function Overview() {
             label="ひとことで言うと"
             value={work.logline}
             onChange={set('logline')}
-            placeholder="誰が、何のために、何をする物語か（ログライン）"
+           
           />
-          <AreaField label="あらすじ" count rows={8} value={work.synopsis} onChange={set('synopsis')} placeholder="物語のはじまりから結末までを、短くまとめて。" />
-          <AreaField label="テーマ・書きたいこと" rows={3} value={work.theme} onChange={set('theme')} placeholder="この物語で描きたいもの、読者に残したい気持ち" />
-          <AreaField label="メモ" rows={3} value={work.memo} onChange={set('memo')} placeholder="思いつきや調べもの" />
+          <AreaField label="あらすじ" count rows={8} value={work.synopsis} onChange={set('synopsis')} />
+          <AreaField label="テーマ・書きたいこと" rows={3} value={work.theme} onChange={set('theme')} />
+          <AreaField label="メモ" rows={3} value={work.memo} onChange={set('memo')} />
         </div>
       </div>
 

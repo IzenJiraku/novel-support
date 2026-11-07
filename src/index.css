@@ -6,11 +6,12 @@
   --surface: #fbf9f5;
   --surface-2: #eeeae2;
   --ink: #3a3631;
-  --muted: #9a948a;
+  --muted: #857e73;
   --line: #e2dcd1;
   --accent: #3a3631;
   --accent-ink: #ffffff;
   --accent-soft: #ebe6dc;
+  --ai: #2d4b6e;
   --danger: #a23b3b;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 18px 40px -12px rgb(0 0 0 / 0.18);
   --book-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 20px 30px -18px rgb(0 0 0 / 0.4);
@@ -44,6 +45,7 @@
     --accent: #e6e6e4;
     --accent-ink: #141414;
     --accent-soft: #262626;
+    --ai: #9db8d8;
     --danger: #e08a8a;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 18px 40px -12px rgb(0 0 0 / 0.6);
     --book-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 20px 30px -16px rgb(0 0 0 / 0.8);
@@ -60,6 +62,7 @@
   --line: #2e2e2e;
   --accent: #e6e6e4;
   --accent-ink: #141414;
+  --ai: #9db8d8;
   --accent-soft: #262626;
   --danger: #e08a8a;
   color-scheme: dark;
@@ -669,7 +672,7 @@ input[type='color'] {
   gap: 12px;
   align-items: flex-start;
 }
-.ov-cover-link {
+.ov-cover > .cover-thumb {
   width: 100%;
 }
 .ov-fields {
@@ -854,7 +857,7 @@ input[type='color'] {
   width: 100%;
   height: min(68vh, 640px);
   min-height: 380px;
-  touch-action: none;
+  touch-action: pan-x pan-y;
   cursor: grab;
   user-select: none;
 }
@@ -2521,6 +2524,148 @@ textarea {
   font-family: var(--f-body);
 }
 
+/* ═════════ わかりやすさ：見出しは見出しらしく、色は藍をひとつだけ ═════════ */
+::selection {
+  background: color-mix(in srgb, var(--ai) 22%, transparent);
+}
+/* 画面の見出し */
+.sec-head {
+  margin-bottom: 40px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+.sec-title .ja {
+  font-family: var(--f-mincho);
+  font-size: clamp(24px, 2.6vw, 30px);
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  color: var(--ink);
+}
+.sub-head {
+  font-family: var(--f-mincho);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  color: var(--ink);
+}
+/* 欄の名前 */
+.field-label {
+  font-family: var(--f-mincho);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--ink);
+}
+.field-label::before {
+  content: '';
+  width: 10px;
+  height: 1px;
+  background: var(--ai);
+  align-self: center;
+}
+/* 目録 */
+.tab {
+  padding: 9px 4px 9px 14px;
+}
+.tab-label {
+  font-family: var(--f-mincho);
+  font-size: 14.5px;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+}
+.tab:hover .tab-label {
+  color: var(--ink);
+}
+.tab.active {
+  border-left: 2px solid var(--ai);
+}
+.tab.active .tab-label {
+  color: var(--ink);
+  font-weight: 600;
+}
+.worknav-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-family: var(--f-latin), serif;
+  font-size: 20px;
+  font-weight: 300;
+}
+.worknav-stats small {
+  font-family: var(--f-mincho);
+  font-size: 11px;
+  margin-left: 3px;
+  color: var(--muted);
+}
+/* ボタン：主役は藍 */
+.btn.primary {
+  border-color: var(--ai);
+  color: var(--ai);
+}
+.btn.primary:hover {
+  background: var(--ai);
+  border-color: var(--ai);
+  color: var(--bg);
+}
+.text-btn:hover {
+  color: var(--ai);
+  border-bottom-color: var(--ai);
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--ai) !important;
+}
+/* 本棚：触れると少し持ち上がる */
+.book .cover-thumb {
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+.book:hover .cover-thumb {
+  transform: translateY(-4px);
+}
+.book-new-box {
+  color: var(--ink);
+  border: 1px solid var(--line);
+  transition: border-color 0.3s ease, color 0.3s ease;
+  font-family: var(--f-mincho);
+  letter-spacing: 0.2em;
+}
+.book-new:hover .book-new-box {
+  border-color: var(--ai);
+  color: var(--ai);
+}
+/* ページを開いたときの静かな立ち上がり */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.workmain > .sec,
+.library {
+  animation: rise 0.45s ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .workmain > .sec,
+  .library {
+    animation: none;
+  }
+}
+
+.shelf {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.shelf > li {
+  width: 180px;
+}
+@media (max-width: 520px) {
+  .shelf > li {
+    width: calc(50% - 16px);
+  }
+}
+
 /* ───────── スマホ ───────── */
 @media (max-width: 860px) {
   .work {
@@ -2601,8 +2746,17 @@ textarea {
     flex-direction: row;
     align-items: flex-end;
   }
-  .ov-cover-link {
+  .ov-cover > .cover-thumb {
     width: 120px;
+  }
+  .ov-cover .ph-title {
+    font-size: 15px;
+  }
+  .ov-cover .ph-author {
+    font-size: 9px;
+  }
+  .sec-head {
+    display: none;
   }
   .field-row {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
