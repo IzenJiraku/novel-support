@@ -1,31 +1,32 @@
 /* Solo Study：白からグレーへ溶けていく余白に、細い文字だけを置く。色は墨の濃淡だけ。
    PCは左に細い目録、右に広い机。スマホでは目録が上の横スクロールになる。 */
 :root {
-  --bg: #f7f7f6;
-  --haze: #dcdcda;
-  --surface: #ffffff;
-  --surface-2: #efefed;
-  --ink: #2b2b2b;
-  --muted: #8a8a88;
-  --line: #e2e2e0;
-  --accent: #2b2b2b;
+  --bg: #f5f2ec;
+  --haze: #f5f2ec;
+  --surface: #fbf9f5;
+  --surface-2: #eeeae2;
+  --ink: #3a3631;
+  --muted: #9a948a;
+  --line: #e2dcd1;
+  --accent: #3a3631;
   --accent-ink: #ffffff;
-  --accent-soft: #ededeb;
+  --accent-soft: #ebe6dc;
   --danger: #a23b3b;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 18px 40px -12px rgb(0 0 0 / 0.18);
   --book-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 20px 30px -18px rgb(0 0 0 / 0.4);
 
   /* 執筆画面の紙（ユーザーが選ぶので両テーマ共通） */
-  --paper-bg: #fcfcfb;
+  --paper-bg: #fbf9f5;
   --paper-ink: #2b2b2b;
   --kinari-bg: #f3eee5;
   --kinari-ink: #3d362e;
   --night-bg: #151515;
   --night-ink: #cfcfcd;
 
-  --f-latin: 'Hanken Grotesk', 'Helvetica Neue', Arial;
-  --f-display: var(--f-latin), 'M PLUS 1', 'Hiragino Sans', sans-serif;
-  --f-body: var(--f-latin), 'M PLUS 1', 'Hiragino Sans', 'Yu Gothic', system-ui, sans-serif;
+  --f-latin: 'Cormorant Garamond', 'Times New Roman';
+  --f-script: 'Sacramento', cursive;
+  --f-display: var(--f-latin), 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  --f-body: var(--f-latin), 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
   --f-mincho: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
   --f-hand: 'Klee One', 'Hiragino Maru Gothic ProN', sans-serif;
 
@@ -2463,6 +2464,60 @@ input[type='range'] {
   color: var(--muted) !important;
   font-size: 11px;
   letter-spacing: 0.1em;
+}
+
+/* ═════════ 紙と明朝：生成りの紙肌に、明朝と細い筆記体を置く ═════════ */
+body {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .38 0 0 0 0 .3 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"), var(--bg);
+  font-size: 13.5px;
+  letter-spacing: 0.06em;
+  line-height: 2;
+  font-feature-settings: 'lnum' 1;
+}
+.sec-title .en {
+  font-weight: 300;
+  font-size: clamp(30px, 4vw, 42px);
+  letter-spacing: 0.04em;
+}
+.sec-title .ja,
+.tab-sub,
+.lib-tagline {
+  font-family: var(--f-mincho);
+}
+.lib-brand h1 {
+  font-family: var(--f-script);
+  font-weight: 400;
+  font-size: clamp(56px, 9vw, 88px);
+  letter-spacing: 0;
+}
+.lib-tagline {
+  font-size: 12px;
+  letter-spacing: 0.5em;
+}
+.back-link {
+  font-family: var(--f-script);
+  font-size: 24px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.tab-label {
+  font-weight: 400;
+  font-size: 15.5px;
+  letter-spacing: 0.1em;
+}
+.worknav-stats dd {
+  font-weight: 300;
+  font-size: 26px;
+}
+.btn,
+.text-btn {
+  font-family: var(--f-mincho);
+  letter-spacing: 0.2em;
+}
+input:not([type='range']):not([type='checkbox']):not([type='color']),
+select,
+textarea {
+  font-family: var(--f-body);
 }
 
 /* ───────── スマホ ───────── */
