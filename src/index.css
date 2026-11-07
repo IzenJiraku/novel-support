@@ -24,7 +24,6 @@
   --night-ink: #cfcfcd;
 
   --f-latin: 'Cormorant Garamond', 'Times New Roman';
-  --f-script: 'Sacramento', cursive;
   --f-display: var(--f-latin), 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
   --f-body: var(--f-latin), 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
   --f-mincho: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
@@ -2485,20 +2484,22 @@ body {
   font-family: var(--f-mincho);
 }
 .lib-brand h1 {
-  font-family: var(--f-script);
-  font-weight: 400;
-  font-size: clamp(56px, 9vw, 88px);
-  letter-spacing: 0;
+  font-family: var(--f-latin), serif;
+  font-weight: 300;
+  font-size: clamp(22px, 3.2vw, 32px);
+  letter-spacing: 0.6em;
+  margin-right: -0.6em;
+  text-transform: uppercase;
 }
 .lib-tagline {
   font-size: 12px;
   letter-spacing: 0.5em;
 }
 .back-link {
-  font-family: var(--f-script);
-  font-size: 24px;
-  letter-spacing: 0;
-  text-transform: none;
+  font-family: var(--f-latin), serif;
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
 }
 .tab-label {
   font-weight: 400;
