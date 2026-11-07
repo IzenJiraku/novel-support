@@ -220,11 +220,7 @@ export default function Editor() {
                 <TrackChip key={t.id} t={t} />
               ))}
             </div>
-          ) : (
-            <p className="small-text muted">
-              まだありません。イメージ音楽のページで、曲をこの章に結びつけるとここから流せます。
-            </p>
-          )}
+          ) : null}
           {work.music.length > 0 && (
             <>
               <span className="pref-head">ほかの曲</span>

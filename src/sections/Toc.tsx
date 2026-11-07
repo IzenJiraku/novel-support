@@ -1,8 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Link, useNavigate } from 'react-router-dom'
-import { countChars, db, manuscriptSheets, recountWork, uid } from '../db'
+import { countChars, db, recountWork, uid } from '../db'
 import { useWork } from '../workContext'
-import { Icon, confirmDialog, fmtDate, fmtNum } from '../ui'
+import { Icon, confirmDialog, fmtNum } from '../ui'
 
 export default function Toc() {
   const { work, update } = useWork()
@@ -27,20 +27,17 @@ export default function Toc() {
     })
   }
 
-  const total = chapters?.reduce((n, c) => n + countChars(c.body), 0) ?? 0
 
   return (
     <section className="sec">
       <header className="sec-head">
         <h2 className="sec-title">
-          <span className="en">Contents</span>
           <span className="ja">目次</span>
         </h2>
       </header>
 
       <div className="toc-book">
         <p className="toc-title">{work.title || '無題'}</p>
-        {chapters && chapters.length === 0 && <p className="muted">まだ章がありません。</p>}
         <ol className="toc">
           {chapters?.map((c, i) => (
             <li key={c.id} className="toc-row">
@@ -53,7 +50,7 @@ export default function Toc() {
               />
               <span className="toc-leader" aria-hidden="true" />
               <span className="toc-count">
-                {fmtNum(countChars(c.body))} 字<small>{c.body ? `${manuscriptSheets(c.body)} 枚 ・ ${fmtDate(c.updatedAt)}` : '未着手'}</small>
+                {fmtNum(countChars(c.body))} 字
               </span>
               <span className="toc-tools">
                 <Link className="btn small primary" to={`../write/${c.id}`}>
@@ -87,9 +84,6 @@ export default function Toc() {
           <button className="btn ghost" onClick={add}>
             <Icon name="plus" size={18} /> 章を追加
           </button>
-          <span className="muted">
-            合計 {fmtNum(total)} 字 ・ 原稿用紙 {fmtNum(chapters?.reduce((n, c) => n + manuscriptSheets(c.body), 0) ?? 0)} 枚
-          </span>
         </div>
       </div>
     </section>
