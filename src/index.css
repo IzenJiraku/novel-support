@@ -1,63 +1,67 @@
-/* 書斎：和紙のような薄い緑灰の地に墨の文字、藍をひとつだけ差す。
-   PCは左に目録（作品内ナビ）、右に机。スマホでは目録が上の横スクロールになる。 */
+/* Solo Study：白からグレーへ溶けていく余白に、細い文字だけを置く。色は墨の濃淡だけ。
+   PCは左に細い目録、右に広い机。スマホでは目録が上の横スクロールになる。 */
 :root {
-  --bg: #eceeea;
-  --surface: #f8f9f6;
-  --surface-2: #e2e6e0;
-  --ink: #1d2320;
-  --muted: #5d6762;
-  --line: #cdd3cc;
-  --accent: #2b4c70;
+  --bg: #f7f7f6;
+  --haze: #dcdcda;
+  --surface: #ffffff;
+  --surface-2: #efefed;
+  --ink: #2b2b2b;
+  --muted: #8a8a88;
+  --line: #e2e2e0;
+  --accent: #2b2b2b;
   --accent-ink: #ffffff;
-  --accent-soft: #dae3ec;
-  --danger: #9c2f2f;
-  --shadow: 0 1px 2px rgb(20 30 25 / 0.08), 0 10px 28px rgb(20 30 25 / 0.08);
-  --book-shadow: 0 1px 1px rgb(20 30 25 / 0.15), 0 12px 24px -8px rgb(20 30 25 / 0.35);
+  --accent-soft: #ededeb;
+  --danger: #a23b3b;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 18px 40px -12px rgb(0 0 0 / 0.18);
+  --book-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 20px 30px -18px rgb(0 0 0 / 0.4);
 
   /* 執筆画面の紙（ユーザーが選ぶので両テーマ共通） */
-  --paper-bg: #fbfbf8;
-  --paper-ink: #1d2320;
-  --kinari-bg: #f2eadc;
-  --kinari-ink: #3a3027;
-  --night-bg: #14181a;
-  --night-ink: #c9cfcb;
+  --paper-bg: #fcfcfb;
+  --paper-ink: #2b2b2b;
+  --kinari-bg: #f3eee5;
+  --kinari-ink: #3d362e;
+  --night-bg: #151515;
+  --night-ink: #cfcfcd;
 
-  --f-display: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
-  --f-body: 'Zen Kaku Gothic New', 'Hiragino Sans', 'Yu Gothic', system-ui, sans-serif;
+  --f-latin: 'Hanken Grotesk', 'Helvetica Neue', Arial;
+  --f-display: var(--f-latin), 'M PLUS 1', 'Hiragino Sans', sans-serif;
+  --f-body: var(--f-latin), 'M PLUS 1', 'Hiragino Sans', 'Yu Gothic', system-ui, sans-serif;
   --f-mincho: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
   --f-hand: 'Klee One', 'Hiragino Maru Gothic ProN', sans-serif;
 
-  --r: 10px;
+  --r: 4px;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #121614;
-    --surface: #1a1f1d;
-    --surface-2: #232a27;
-    --ink: #e2e7e3;
-    --muted: #96a09a;
-    --line: #2e3633;
-    --accent: #8fb2d8;
-    --accent-ink: #0f1a26;
-    --accent-soft: #1f2d3b;
-    --danger: #e08585;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 10px 28px rgb(0 0 0 / 0.35);
-    --book-shadow: 0 1px 1px rgb(0 0 0 / 0.4), 0 14px 26px -8px rgb(0 0 0 / 0.7);
+    --bg: #141414;
+    --haze: #2a2a2a;
+    --surface: #1b1b1b;
+    --surface-2: #242424;
+    --ink: #e6e6e4;
+    --muted: #8e8e8c;
+    --line: #2e2e2e;
+    --accent: #e6e6e4;
+    --accent-ink: #141414;
+    --accent-soft: #262626;
+    --danger: #e08a8a;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 18px 40px -12px rgb(0 0 0 / 0.6);
+    --book-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 20px 30px -16px rgb(0 0 0 / 0.8);
     color-scheme: dark;
   }
 }
 :root[data-theme='dark'] {
-  --bg: #121614;
-  --surface: #1a1f1d;
-  --surface-2: #232a27;
-  --ink: #e2e7e3;
-  --muted: #96a09a;
-  --line: #2e3633;
-  --accent: #8fb2d8;
-  --accent-ink: #0f1a26;
-  --accent-soft: #1f2d3b;
-  --danger: #e08585;
+  --bg: #141414;
+  --haze: #2a2a2a;
+  --surface: #1b1b1b;
+  --surface-2: #242424;
+  --ink: #e6e6e4;
+  --muted: #8e8e8c;
+  --line: #2e2e2e;
+  --accent: #e6e6e4;
+  --accent-ink: #141414;
+  --accent-soft: #262626;
+  --danger: #e08a8a;
   color-scheme: dark;
 }
 
@@ -1651,15 +1655,6 @@ input[type='range'] {
   caret-color: var(--accent);
   font-feature-settings: 'palt' 0;
 }
-.font-mincho .ed-body {
-  font-family: var(--f-mincho);
-}
-.font-gothic .ed-body {
-  font-family: var(--f-body);
-}
-.font-kyokasho .ed-body {
-  font-family: var(--f-hand);
-}
 .ed-body::placeholder {
   color: inherit;
   opacity: 0.3;
@@ -1673,6 +1668,747 @@ input[type='range'] {
   max-height: min(40em, 100%);
   height: 100%;
   overflow-x: auto;
+}
+
+/* ═════════ Solo Study のトーン（ここから下で全体を細く・静かに整える） ═════════ */
+body {
+  background: linear-gradient(180deg, var(--haze) 0, var(--bg) 340px) no-repeat, var(--bg);
+  font-size: 14px;
+  font-weight: 300;
+  letter-spacing: 0.03em;
+  line-height: 1.8;
+}
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--f-display);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+}
+strong,
+b {
+  font-weight: 500;
+}
+
+/* ボタン：細い線と文字だけ */
+.btn {
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  gap: 6px;
+}
+.btn:hover {
+  border-color: var(--ink);
+}
+.btn.primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+.btn.primary:hover {
+  filter: none;
+  opacity: 0.85;
+}
+.btn.ghost {
+  border-color: var(--line);
+  color: var(--ink);
+}
+.btn.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #ffffff;
+}
+.btn.small {
+  padding: 5px 12px;
+  font-size: 12px;
+}
+.text-btn {
+  border: 0;
+  background: none;
+  padding: 2px 0;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.text-btn:hover {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+.icon-btn {
+  width: 30px;
+  height: 30px;
+  color: var(--muted);
+}
+.icon-btn:hover:not(:disabled) {
+  background: transparent;
+  color: var(--ink);
+}
+.danger-text {
+  color: var(--danger) !important;
+}
+
+/* 入力欄：下線だけ */
+input:not([type='range']):not([type='checkbox']):not([type='color']),
+select {
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  padding: 8px 2px;
+  font-weight: 300;
+}
+textarea {
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: transparent;
+  padding: 10px 12px;
+  font-weight: 300;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--ink);
+  box-shadow: none;
+}
+.field-label {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+}
+.input-big {
+  font-family: var(--f-mincho) !important;
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}
+input[type='color'] {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  padding: 0;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+input[type='color']::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+input[type='color']::-webkit-color-swatch {
+  border: 0;
+  border-radius: 999px;
+}
+input[type='range'] {
+  accent-color: var(--ink);
+  height: 16px;
+}
+
+/* 切り替え：下線で選択中を示す */
+.seg {
+  background: transparent;
+  padding: 0;
+  gap: 18px;
+  border-radius: 0;
+}
+.seg-btn {
+  padding: 4px 0 !important;
+  border-radius: 0;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid transparent;
+}
+.seg-btn.on {
+  background: transparent;
+  box-shadow: none;
+  font-weight: 400;
+  border-bottom-color: var(--ink);
+}
+.chip {
+  border-color: var(--line);
+  padding: 3px 12px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.chip:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.chip.on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chip-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.tag {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.small-text {
+  font-size: 12px;
+  margin: 0;
+}
+.swatch {
+  width: 20px;
+  height: 20px;
+  border-width: 1px;
+}
+
+/* 見出し：英字を大きく細く、日本語を小さく添える */
+.sec-head {
+  margin-bottom: 36px;
+}
+.sec-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+}
+.sec-title .en {
+  font-family: var(--f-latin), sans-serif;
+  font-weight: 200;
+  font-size: clamp(34px, 5vw, 52px);
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+}
+.sec-title .ja {
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  color: var(--muted);
+}
+.sec-hint {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  margin-top: 10px;
+}
+.sub-head {
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+}
+
+/* 一覧 */
+.lib-head {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border-bottom: 0;
+  padding-block: clamp(32px, 9vw, 96px) 40px;
+  gap: 28px;
+  margin-bottom: 24px;
+}
+.lib-brand h1 {
+  font-family: var(--f-latin), sans-serif;
+  font-weight: 200;
+  font-size: clamp(48px, 10vw, 104px);
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+.lib-tagline {
+  margin: 18px 0 0 !important;
+  font-size: 13px;
+  letter-spacing: 0.4em;
+  color: var(--ink) !important;
+}
+.lib-count {
+  margin-top: 6px !important;
+  font-family: var(--f-latin), sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+.lib-actions {
+  justify-content: center;
+}
+.shelf {
+  gap: 48px 32px;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+}
+.book-meta h3 {
+  font-family: var(--f-mincho);
+  font-weight: 400;
+  font-size: 16px;
+  letter-spacing: 0.06em;
+}
+.status {
+  border: 0;
+  padding: 0;
+  font-size: 10.5px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.status::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: currentColor;
+}
+.status-執筆中 {
+  color: var(--ink);
+}
+.status-完成 {
+  background: transparent;
+  color: var(--ink);
+}
+.book-new-box {
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  font-size: 12px;
+  letter-spacing: 0.15em;
+}
+.book-new:hover .book-new-box {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.cover-thumb {
+  border-radius: 1px 3px 3px 1px;
+}
+.cover-placeholder {
+  background: linear-gradient(170deg, hsl(var(--hue) 5% 38%), hsl(var(--hue) 6% 16%));
+  color: #f4f4f2;
+}
+.ph-title {
+  font-weight: 400;
+}
+.lib-empty-art {
+  writing-mode: horizontal-tb;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--f-latin), sans-serif;
+  font-weight: 200;
+  font-size: 44px;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  padding: 36px 30px;
+  color: var(--ink);
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+}
+.lib-empty h2 {
+  font-size: 20px;
+}
+.lib-foot {
+  text-align: center;
+  letter-spacing: 0.08em;
+}
+
+/* 作品ページの目録 */
+.worknav {
+  background: transparent;
+  border-right: 1px solid var(--line);
+  gap: 18px;
+}
+.back-link {
+  font-family: var(--f-latin), sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+.worknav-title {
+  font-family: var(--f-mincho);
+  font-weight: 400;
+  font-size: 18px;
+  letter-spacing: 0.06em;
+}
+.tab {
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 4px 7px 12px;
+  border-radius: 0 !important;
+  border-left: 1px solid transparent;
+}
+.tab:hover {
+  background: transparent;
+}
+.tab.active {
+  background: transparent;
+  border-left-color: var(--ink);
+}
+.tab-label {
+  font-family: var(--f-latin), sans-serif;
+  font-weight: 300;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+}
+.tab-sub {
+  font-size: 10.5px;
+  letter-spacing: 0.15em;
+}
+.worknav-stats dt {
+  font-family: var(--f-latin), sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.worknav-stats dd {
+  font-family: var(--f-latin), sans-serif;
+  font-weight: 200;
+  font-size: 22px;
+  line-height: 1.2;
+}
+.worknav-stats dd small {
+  font-size: 10px;
+  margin-left: 3px;
+  color: var(--muted);
+}
+
+/* 各ページの細部 */
+.toc-book,
+.cast-stage,
+.cgroup {
+  background: var(--surface);
+  border-color: var(--line);
+  border-radius: var(--r);
+}
+.toc-title,
+.toc-name,
+.beat-label,
+.track-title,
+.cast-card-text strong,
+.node-name {
+  font-family: var(--f-mincho) !important;
+  font-weight: 400 !important;
+}
+.toc-title {
+  letter-spacing: 0.3em;
+}
+.beat-mark span {
+  border-width: 1px;
+  border-color: var(--line);
+  color: var(--muted);
+  font-family: var(--f-latin), sans-serif;
+  font-weight: 300;
+  background: var(--bg);
+}
+.beat-mark::before {
+  background: var(--line);
+}
+.cast-card {
+  border-color: var(--line);
+  border-radius: var(--r);
+}
+.cast-card:hover {
+  border-color: var(--ink);
+}
+.node-initial {
+  font-family: var(--f-mincho);
+  font-weight: 400;
+}
+.edge-label text {
+  font-weight: 400;
+  font-size: 12px;
+}
+.cgroup summary {
+  font-family: var(--f-body);
+  font-weight: 400;
+  font-size: 13px;
+  letter-spacing: 0.15em;
+}
+.preset {
+  background: transparent;
+  border-radius: var(--r);
+  font-family: var(--f-body);
+  font-weight: 300;
+  font-size: 12.5px;
+  letter-spacing: 0.08em;
+}
+.preset.on {
+  border-color: var(--ink);
+  background: transparent;
+}
+.range {
+  font-size: 12px;
+}
+.rireki {
+  background: var(--surface);
+  border-radius: 2px;
+}
+.rk-head h3 {
+  font-family: var(--f-mincho);
+  font-weight: 600;
+}
+.rk-name td {
+  font-weight: 600;
+}
+.modal {
+  background: var(--surface);
+  border-radius: 6px;
+}
+.modal-head h2 {
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+}
+.modal-back {
+  background: rgb(20 20 20 / 0.35);
+  backdrop-filter: blur(3px);
+}
+.toast {
+  font-size: 12.5px;
+  letter-spacing: 0.08em;
+}
+
+/* 音楽 */
+.music-add {
+  gap: 14px;
+  align-items: end;
+}
+.music-view {
+  margin-bottom: 18px;
+}
+.track {
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: 14px;
+  padding: 18px 0;
+}
+.track-play-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: var(--f-latin), sans-serif;
+  color: var(--ink);
+}
+.track-play-btn:hover:not(:disabled),
+.track-play-btn.playing {
+  border-color: var(--ink);
+}
+.track-play-btn.playing {
+  background: var(--ink);
+  color: var(--bg);
+}
+.track-play-btn:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+.track-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding-left: 6px;
+}
+.link-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  margin-left: 6px;
+}
+.link-label {
+  margin: 0 0 6px;
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+}
+.track-play {
+  padding-left: 6px;
+  gap: 16px;
+}
+.music-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 28px 32px;
+}
+.music-group h3 {
+  font-family: var(--f-mincho);
+  font-size: 16px;
+  font-weight: 400;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.music-group h3 small {
+  font-family: var(--f-body);
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+}
+.track-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 4px 12px 4px 4px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  cursor: pointer;
+}
+.track-chip:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+.track-chip:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.track-chip.playing {
+  border-color: var(--ink);
+}
+.tc-icon {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 9px;
+}
+.track-chip.playing .tc-icon {
+  background: var(--ink);
+  color: var(--bg);
+}
+.tc-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tc-artist {
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 1.5px;
+  height: 9px;
+}
+.eq i {
+  width: 2px;
+  background: currentColor;
+  animation: eq 0.9s ease-in-out infinite;
+}
+.eq i:nth-child(2) {
+  animation-delay: -0.3s;
+}
+.eq i:nth-child(3) {
+  animation-delay: -0.6s;
+}
+@keyframes eq {
+  0%,
+  100% {
+    height: 3px;
+  }
+  50% {
+    height: 9px;
+  }
+}
+
+/* 執筆画面 */
+.ed-body {
+  font-family: var(--ed-font, var(--f-mincho)) !important;
+  font-weight: 400;
+  caret-color: currentColor;
+}
+.ed-title {
+  font-family: var(--ed-font, var(--f-mincho)) !important;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+}
+.ed-bar {
+  font-family: var(--f-latin), 'M PLUS 1', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+.ed-select {
+  font-family: var(--ed-font, var(--f-mincho)) !important;
+  font-weight: 400;
+}
+.ed-btn.has-music {
+  opacity: 1;
+}
+.ed-prefs {
+  border-radius: 6px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  gap: 16px;
+}
+.ed-music {
+  width: min(300px, calc(100vw - 24px));
+}
+.pref > span,
+.pref-head {
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+}
+.font-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.font-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+.font-tile:hover {
+  border-color: var(--muted);
+}
+.font-tile.on {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.ft-sample {
+  font-size: 20px;
+  line-height: 1.3;
+}
+.ft-label {
+  font-family: var(--f-body);
+  font-size: 11px;
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+.ft-label small {
+  color: var(--muted);
+  font-size: 10px;
 }
 
 /* ───────── スマホ ───────── */
@@ -1723,6 +2459,20 @@ input[type='range'] {
   }
   .tab-sub {
     display: none;
+  }
+  .tab {
+    border-left: 0 !important;
+    padding: 8px 10px !important;
+    border-bottom: 1px solid transparent;
+  }
+  .tab.active {
+    border-bottom-color: var(--ink);
+  }
+  .worknav {
+    background: var(--bg);
+  }
+  .music-add .btn {
+    justify-self: start;
   }
   .worknav-stats {
     display: none;

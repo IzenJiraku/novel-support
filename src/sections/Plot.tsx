@@ -1,4 +1,5 @@
-import { TEMPLATES, uid } from '../db'
+import { TEMPLATES, trackLinks, uid } from '../db'
+import TrackChip from '../components/TrackChip'
 import { useWork } from '../workContext'
 import { AutoArea } from '../components/Field'
 import { Icon, confirmDialog } from '../ui'
@@ -27,7 +28,10 @@ export default function Plot() {
   return (
     <section className="sec">
       <header className="sec-head">
-        <h2>構成</h2>
+        <h2 className="sec-title">
+          <span className="en">Structure</span>
+          <span className="ja">構成</span>
+        </h2>
         <p className="sec-hint">物語の骨組みを段階ごとに書き出します。型を選ぶと見出しが入ります。</p>
       </header>
 
@@ -68,6 +72,15 @@ export default function Plot() {
                   })
                 }
               />
+              {work.music.some((t) => trackLinks(t).beatIds.includes(b.id)) && (
+                <div className="chip-row">
+                  {work.music
+                    .filter((t) => trackLinks(t).beatIds.includes(b.id))
+                    .map((t) => (
+                      <TrackChip key={t.id} t={t} />
+                    ))}
+                </div>
+              )}
             </div>
             <div className="beat-tools">
               <button className="icon-btn" onClick={() => move(i, -1)} disabled={i === 0} aria-label="上へ">

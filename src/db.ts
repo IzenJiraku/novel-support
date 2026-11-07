@@ -69,7 +69,18 @@ export interface Track {
   url: string
   fileId: string | null
   scene: string
+  /** この曲を結びつけた人物・章・構成の段階 */
+  characterIds?: string[]
+  chapterIds?: string[]
+  beatIds?: string[]
 }
+
+/** 古いデータでも動くよう、紐付けの配列を必ず埋めて返す */
+export const trackLinks = (t: Track) => ({
+  characterIds: t.characterIds ?? [],
+  chapterIds: t.chapterIds ?? [],
+  beatIds: t.beatIds ?? [],
+})
 
 export interface CoverSettings {
   preset: string
@@ -180,7 +191,7 @@ export function manuscriptSheets(s: string) {
   return Math.ceil(lines / 20)
 }
 
-export const PALETTE = ['#2B4C70', '#8A3B3B', '#3F6B4F', '#7A5C2E', '#5B4A7A', '#2F6F73', '#8A5A7A', '#4A4F57']
+export const PALETTE = ['#3D4A5C', '#7A4E4E', '#4E6352', '#7A6A4E', '#5E5470', '#4C6A6C', '#7A5E6E', '#505050']
 
 export const TEMPLATES: Record<string, { name: string; beats: string[] }> = {
   kishoutenketsu: { name: '起承転結', beats: ['起', '承', '転', '結'] },
@@ -376,7 +387,7 @@ export async function exportWorkJSON(workId: string) {
 
 export async function importWorkJSON(text: string) {
   const data = JSON.parse(text)
-  if (data.format !== 'monogatari-shosai' || !data.work) throw new Error('この書斎のバックアップファイルではありません')
+  if (data.format !== 'monogatari-shosai' || !data.work) throw new Error('Solo Study のバックアップファイルではありません')
   const newId = uid()
   const idMap = new Map<string, string>()
   for (const f of data.files || []) idMap.set(f.id, uid())
@@ -386,10 +397,12 @@ export async function importWorkJSON(text: string) {
   w.cover = { ...defaultCover(), ...w.cover, bgId: remap(w.cover?.bgId ?? null) }
   w.characters = w.characters.map((c) => ({ ...c, photoId: remap(c.photoId) }))
   w.refs = w.refs.map((r) => ({ ...r, fileId: remap(r.fileId)! }))
-  w.music = w.music.map((m) => ({ ...m, fileId: remap(m.fileId) }))
+  const chMap = new Map<string, string>()
+  for (const c of data.chapters || []) chMap.set(c.id, uid())
+  w.music = w.music.map((m) => ({ ...m, fileId: remap(m.fileId), chapterIds: (m.chapterIds ?? []).map((id) => chMap.get(id) ?? id) }))
   await db.transaction('rw', db.works, db.chapters, db.files, async () => {
     await db.works.add(w)
-    for (const c of data.chapters || []) await db.chapters.add({ ...c, id: uid(), workId: newId })
+    for (const c of data.chapters || []) await db.chapters.add({ ...c, id: chMap.get(c.id)!, workId: newId })
     for (const f of data.files || []) {
       const blob = await (await fetch(f.data)).blob()
       await db.files.add({ id: idMap.get(f.id)!, workId: newId, blob, type: f.type, name: f.name, createdAt: Date.now() })

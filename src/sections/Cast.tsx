@@ -169,7 +169,10 @@ export default function Cast() {
   return (
     <section className="sec">
       <header className="sec-head">
-        <h2>相関図</h2>
+        <h2 className="sec-title">
+          <span className="en">Characters</span>
+          <span className="ja">相関図</span>
+        </h2>
         <p className="sec-hint">人物をドラッグして配置し、押すとプロフィール（履歴書）が開きます。関係の文字を押すと編集できます。</p>
       </header>
 

@@ -23,7 +23,10 @@ export default function Overview() {
   return (
     <section className="sec">
       <header className="sec-head">
-        <h2>概要</h2>
+        <h2 className="sec-title">
+          <span className="en">Overview</span>
+          <span className="ja">概要</span>
+        </h2>
         <p className="sec-hint">作品の顔になる情報です。入力すると自動で保存されます。</p>
       </header>
 

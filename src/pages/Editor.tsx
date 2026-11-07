@@ -1,13 +1,28 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { countChars, db, manuscriptSheets, recountWork, type Chapter } from '../db'
+import { countChars, db, manuscriptSheets, recountWork, trackLinks, type Chapter } from '../db'
+import TrackChip from '../components/TrackChip'
 import { useWork } from '../workContext'
 import { Icon, fmtNum, toast } from '../ui'
 
+/** 執筆用の書体。書いていて気分が上がるものを選べるように */
+export const WRITING_FONTS = [
+  { id: 'mincho', label: 'しっぽり明朝', family: "'Shippori Mincho', serif", note: '端正' },
+  { id: 'oldmincho', label: '旧明朝', family: "'Zen Old Mincho', serif", note: '古書のよう' },
+  { id: 'hina', label: 'ひな明朝', family: "'Hina Mincho', serif", note: 'やわらか' },
+  { id: 'serif', label: 'Noto 明朝', family: "'Noto Serif JP', serif", note: '読みやすい' },
+  { id: 'gothic', label: 'M+ ゴシック', family: "'M PLUS 1', sans-serif", note: 'すっきり' },
+  { id: 'maru', label: '丸ゴシック', family: "'Zen Maru Gothic', sans-serif", note: 'まるい' },
+  { id: 'kiwi', label: 'キウイ丸', family: "'Kiwi Maru', serif", note: 'あたたか' },
+  { id: 'klee', label: 'クレー', family: "'Klee One', cursive", note: 'ペン字' },
+  { id: 'yomogi', label: 'よもぎ', family: "'Yomogi', cursive", note: '手書き' },
+  { id: 'kurenaido', label: '紅道', family: "'Zen Kurenaido', sans-serif", note: '筆ペン' },
+] as const
+
 interface Prefs {
   vertical: boolean
-  font: 'mincho' | 'gothic' | 'kyokasho'
+  font: string
   size: number
   lineHeight: number
   theme: 'paper' | 'kinari' | 'night'
@@ -17,7 +32,9 @@ const defaultPrefs: Prefs = { vertical: false, font: 'mincho', size: 18, lineHei
 
 function loadPrefs(): Prefs {
   try {
-    return { ...defaultPrefs, ...JSON.parse(localStorage.getItem(PREF_KEY) || '{}') }
+    const p = { ...defaultPrefs, ...JSON.parse(localStorage.getItem(PREF_KEY) || '{}') }
+    if (p.font === 'kyokasho') p.font = 'klee'
+    return p
   } catch {
     return defaultPrefs
   }
@@ -34,6 +51,7 @@ export default function Editor() {
   const [ch, setCh] = useState<Chapter | null | undefined>(undefined)
   const [prefs, setPrefs] = useState<Prefs>(loadPrefs)
   const [showPrefs, setShowPrefs] = useState(false)
+  const [showMusic, setShowMusic] = useState(false)
   const [save, setSave] = useState<SaveState>('saved')
   const [quiet, setQuiet] = useState(false)
   const latest = useRef<Chapter | null>(null)
@@ -87,7 +105,10 @@ export default function Editor() {
         e.preventDefault()
         void flushRef.current().then(() => toast('保存しました'))
       }
-      if (e.key === 'Escape') setShowPrefs(false)
+      if (e.key === 'Escape') {
+        setShowPrefs(false)
+        setShowMusic(false)
+      }
     }
     const onHide = () => void flushRef.current()
     window.addEventListener('keydown', onKey)
@@ -127,17 +148,19 @@ export default function Editor() {
     )
 
   const idx = chapters?.findIndex((c) => c.id === ch.id) ?? -1
+  const font = WRITING_FONTS.find((f) => f.id === prefs.font) ?? WRITING_FONTS[0]
+  const sceneTracks = work.music.filter((t) => trackLinks(t).chapterIds.includes(ch.id))
   const chars = countChars(ch.body)
 
   return (
     <div
-      className={`editor theme-${prefs.theme} font-${prefs.font}${prefs.vertical ? ' vertical' : ''}${quiet ? ' quiet' : ''}`}
-      style={{ ['--ed-size' as string]: prefs.size + 'px', ['--ed-lh' as string]: prefs.lineHeight }}
+      className={`editor theme-${prefs.theme}${prefs.vertical ? ' vertical' : ''}${quiet ? ' quiet' : ''}`}
+      style={{ ['--ed-size' as string]: prefs.size + 'px', ['--ed-lh' as string]: prefs.lineHeight, ['--ed-font' as string]: font.family }}
       onMouseMove={() => quiet && setQuiet(false)}
     >
       <header className="ed-bar ed-top">
         <button className="ed-btn" onClick={close}>
-          <Icon name="back" size={18} /> 目次
+          <Icon name="back" size={16} /> <span className="hide-sm">目次</span>
         </button>
         <select
           className="ed-select"
@@ -155,8 +178,26 @@ export default function Editor() {
           ))}
         </select>
         <div className="ed-spacer" />
-        <button className="ed-btn" onClick={() => setShowPrefs((v) => !v)} aria-expanded={showPrefs}>
-          <Icon name="settings" size={18} /> 表示
+        <button
+          className={'ed-btn' + (sceneTracks.length ? ' has-music' : '')}
+          onClick={() => {
+            setShowMusic((v) => !v)
+            setShowPrefs(false)
+          }}
+          aria-expanded={showMusic}
+        >
+          <Icon name="music" size={16} />
+          <span className="hide-sm">{sceneTracks.length ? `この章の曲 ${sceneTracks.length}` : '曲'}</span>
+        </button>
+        <button
+          className="ed-btn"
+          onClick={() => {
+            setShowPrefs((v) => !v)
+            setShowMusic(false)
+          }}
+          aria-expanded={showPrefs}
+        >
+          <Icon name="settings" size={16} /> <span className="hide-sm">表示</span>
         </button>
         <button
           className="ed-btn hide-sm"
@@ -166,9 +207,38 @@ export default function Editor() {
             else void document.documentElement.requestFullscreen?.().catch(() => toast('この端末では全画面にできません'))
           }}
         >
-          <Icon name="expand" size={18} />
+          <Icon name="expand" size={16} />
         </button>
       </header>
+
+      {showMusic && (
+        <div className="ed-prefs ed-music" role="dialog" aria-label="この章の曲">
+          <span className="pref-head">この章の曲</span>
+          {sceneTracks.length ? (
+            <div className="chip-col">
+              {sceneTracks.map((t) => (
+                <TrackChip key={t.id} t={t} />
+              ))}
+            </div>
+          ) : (
+            <p className="small-text muted">
+              まだありません。イメージ音楽のページで、曲をこの章に結びつけるとここから流せます。
+            </p>
+          )}
+          {work.music.length > 0 && (
+            <>
+              <span className="pref-head">ほかの曲</span>
+              <div className="chip-col">
+                {work.music
+                  .filter((t) => !sceneTracks.includes(t))
+                  .map((t) => (
+                    <TrackChip key={t.id} t={t} />
+                  ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {showPrefs && (
         <div className="ed-prefs" role="dialog" aria-label="表示の設定">
@@ -185,16 +255,14 @@ export default function Editor() {
           </div>
           <div className="pref">
             <span>書体</span>
-            <div className="seg small">
-              {(
-                [
-                  ['mincho', '明朝'],
-                  ['gothic', 'ゴシック'],
-                  ['kyokasho', '手書き風'],
-                ] as const
-              ).map(([k, l]) => (
-                <button key={k} className={'seg-btn' + (prefs.font === k ? ' on' : '')} onClick={() => setPrefs({ ...prefs, font: k })}>
-                  {l}
+            <div className="font-tiles">
+              {WRITING_FONTS.map((f) => (
+                <button key={f.id} className={'font-tile' + (prefs.font === f.id ? ' on' : '')} style={{ fontFamily: f.family }} onClick={() => setPrefs({ ...prefs, font: f.id })}>
+                  <span className="ft-sample">永い夜</span>
+                  <span className="ft-label">
+                    {f.label}
+                    <small>{f.note}</small>
+                  </span>
                 </button>
               ))}
             </div>
@@ -226,7 +294,13 @@ export default function Editor() {
         </div>
       )}
 
-      <div className="ed-page" onClick={() => setShowPrefs(false)}>
+      <div
+        className="ed-page"
+        onClick={() => {
+          setShowPrefs(false)
+          setShowMusic(false)
+        }}
+      >
         <input
           className="ed-title"
           value={ch.title}

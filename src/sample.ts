@@ -73,13 +73,15 @@ export async function createSampleWork() {
   })
   const rel = (from: string, to: string, label: string, dir: 'one' | 'both' | 'none', color: string) => ({ id: uid(), from, to, label, dir, color })
 
+  const ch1Id = uid()
+  const ch2Id = uid()
   const cover = PRESETS.cinema.apply(defaultCover())
   cover.copy = { ...cover.copy, text: '宛先は、海の底の街。' }
 
   const w = newWork({
     title: '夜明けの郵便船',
     subtitle: 'サンプル作品',
-    penName: '書斎 太郎',
+    penName: 'Solo Study',
     genre: '海洋ファンタジー',
     status: '執筆中',
     logline: '海に沈んだ街へ手紙を届ける郵便船の見習い・ミオが、差出人のない一通をきっかけに、街が沈んだ本当の理由に近づいていく。',
@@ -98,14 +100,17 @@ export async function createSampleWork() {
     },
     characters: [mio, kai, toru, reiko, yoshi],
     relations: [
-      rel(mio.id, kai.id, '師匠・憧れ', 'one', '#2B4C70'),
-      rel(kai.id, mio.id, '放っておけない', 'one', '#3F6B4F'),
-      rel(mio.id, toru.id, '文通相手', 'both', '#8A5A7A'),
-      rel(reiko.id, kai.id, '元同僚・因縁', 'both', '#8A3B3B'),
-      rel(reiko.id, toru.id, '監視', 'one', '#8A3B3B'),
-      rel(yoshi.id, mio.id, '見守る', 'one', '#7A5C2E'),
+      rel(mio.id, kai.id, '師匠・憧れ', 'one', '#3D4A5C'),
+      rel(kai.id, mio.id, '放っておけない', 'one', '#4E6352'),
+      rel(mio.id, toru.id, '文通相手', 'both', '#7A5E6E'),
+      rel(reiko.id, kai.id, '元同僚・因縁', 'both', '#7A4E4E'),
+      rel(reiko.id, toru.id, '監視', 'one', '#7A4E4E'),
+      rel(yoshi.id, mio.id, '見守る', 'one', '#7A6A4E'),
     ],
-    music: [{ id: uid(), title: '（曲名を入れてください）', artist: '', url: '', fileId: null, scene: '第一章、霧の朝に船が出るところ' }],
+    music: [
+      { id: uid(), title: 'ミオのテーマ（曲名を入れてください）', artist: '', url: '', fileId: null, scene: '朝焼けの海、まっすぐ走り出す感じ', characterIds: [mio.id], chapterIds: [ch1Id], beatIds: [] },
+      { id: uid(), title: '沈んだ街（曲名を入れてください）', artist: '', url: '', fileId: null, scene: '水の底の静けさ、止まった時計', characterIds: [toru.id], chapterIds: [ch2Id], beatIds: [] },
+    ],
     cover,
   })
 
@@ -117,8 +122,8 @@ export async function createSampleWork() {
   await db.transaction('rw', db.works, db.chapters, async () => {
     await db.works.add(w)
     await db.chapters.bulkAdd([
-      { id: uid(), workId: w.id, title: '第一章　霧の朝', order: 1, body: ch1, memo: '', updatedAt: Date.now() },
-      { id: uid(), workId: w.id, title: '第二章　差出人のない手紙', order: 2, body: ch2, memo: '', updatedAt: Date.now() },
+      { id: ch1Id, workId: w.id, title: '第一章　霧の朝', order: 1, body: ch1, memo: '', updatedAt: Date.now() },
+      { id: ch2Id, workId: w.id, title: '第二章　差出人のない手紙', order: 2, body: ch2, memo: '', updatedAt: Date.now() },
     ])
   })
   return w.id

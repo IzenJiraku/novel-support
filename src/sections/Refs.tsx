@@ -71,7 +71,10 @@ export default function Refs() {
       }}
     >
       <header className="sec-head">
-        <h2>参考画像</h2>
+        <h2 className="sec-title">
+          <span className="en">References</span>
+          <span className="ja">参考画像</span>
+        </h2>
         <p className="sec-hint">風景、衣装、小物、雰囲気の資料をまとめておく場所です。PCでは画像をここへドラッグしても追加できます。</p>
       </header>
 
