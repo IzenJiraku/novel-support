@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
-import { PALETTE, prepareImage, removeFile, saveFile, uid, type Character } from '../db'
+import { PALETTE, prepareImage, removeFile, saveFile, trackLinks, uid, type Character } from '../db'
+import TrackChip from '../components/TrackChip'
 import { useWork } from '../workContext'
 import { AutoArea } from '../components/Field'
 import { Icon, Modal, confirmDialog, useFileURL } from '../ui'
@@ -54,6 +55,15 @@ export default function Profile({ c, startEditing, onClose }: { c: Character; st
       const other = work.characters.find((x) => x.id === otherId)
       const arrow = r.dir === 'both' ? '↔' : r.dir === 'none' ? '―' : r.from === c.id ? '→' : '←'
       return { id: r.id, arrow, name: other?.name || '名前未設定', label: r.label, color: r.color }
+    })
+
+  const themeTracks = work.music.filter((t) => trackLinks(t).characterIds.includes(c.id))
+  const toggleTrack = (trackId: string) =>
+    update((w) => {
+      const t = w.music.find((t) => t.id === trackId)
+      if (!t) return
+      const ids = t.characterIds ?? []
+      t.characterIds = ids.includes(c.id) ? ids.filter((x) => x !== c.id) : [...ids, c.id]
     })
 
   const onDelete = async () => {
@@ -185,6 +195,17 @@ export default function Profile({ c, startEditing, onClose }: { c: Character; st
             ))}
           </dl>
 
+          {themeTracks.length > 0 && (
+            <section className="rk-rel">
+              <h4>テーマ曲</h4>
+              <div className="chip-row">
+                {themeTracks.map((t) => (
+                  <TrackChip key={t.id} t={t} />
+                ))}
+              </div>
+            </section>
+          )}
+
           {relations.length > 0 && (
             <section className="rk-rel">
               <h4>人間関係</h4>
@@ -311,6 +332,19 @@ export default function Profile({ c, startEditing, onClose }: { c: Character; st
               </button>
             </div>
           </div>
+
+          {work.music.length > 0 && (
+            <div className="field">
+              <span className="field-label">テーマ曲（イメージ音楽から選ぶ）</span>
+              <div className="chip-row">
+                {work.music.map((t) => (
+                  <button key={t.id} className={'chip' + (trackLinks(t).characterIds.includes(c.id) ? ' on' : '')} onClick={() => toggleTrack(t.id)}>
+                    {t.title || '無題の曲'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="pf-blocks">
             {BLOCKS.map((b) => (

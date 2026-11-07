@@ -23,8 +23,10 @@ export default function Overview() {
   return (
     <section className="sec">
       <header className="sec-head">
-        <h2>概要</h2>
-        <p className="sec-hint">作品の顔になる情報です。入力すると自動で保存されます。</p>
+        <h2 className="sec-title">
+          <span className="en">Overview</span>
+          <span className="ja">概要</span>
+        </h2>
       </header>
 
       <div className="ov-grid">
@@ -73,25 +75,25 @@ export default function Overview() {
 
       <footer className="ov-actions">
         <button
-          className="btn ghost"
+          className="text-btn"
           onClick={async () => {
             await flush()
             downloadBlob(safeName(work.title) + '.txt', await exportWorkText(work.id))
           }}
         >
-          <Icon name="download" size={18} /> 本文をテキストで書き出す
+          <Icon name="download" size={18} /> テキストで書き出す
         </button>
         <button
-          className="btn ghost"
+          className="text-btn"
           onClick={async () => {
             await flush()
             downloadBlob(safeName(work.title) + '.shosai.json', await exportWorkJSON(work.id), 'application/json')
           }}
         >
-          <Icon name="download" size={18} /> バックアップを書き出す
+          <Icon name="download" size={18} /> バックアップ
         </button>
-        <button className="btn ghost danger-text" onClick={onDelete}>
-          <Icon name="trash" size={18} /> この作品を削除
+        <button className="text-btn danger-text" onClick={onDelete}>
+          <Icon name="trash" size={18} /> 削除
         </button>
       </footer>
     </section>

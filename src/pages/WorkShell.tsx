@@ -13,13 +13,13 @@ import Refs from '../sections/Refs'
 import Music from '../sections/Music'
 
 const TABS = [
-  { key: 'overview', label: '概要', sub: 'タイトル・あらすじ' },
-  { key: 'cover', label: '表紙', sub: 'ポスターをつくる' },
-  { key: 'cast', label: '相関図', sub: '登場人物と関係' },
-  { key: 'plot', label: '構成', sub: '物語の骨組み' },
-  { key: 'toc', label: '目次', sub: '章と本文' },
-  { key: 'refs', label: '参考画像', sub: '資料・イメージ' },
-  { key: 'music', label: 'イメージ音楽', sub: '作品の音' },
+  { key: 'overview', label: 'Overview', sub: '概要' },
+  { key: 'cover', label: 'Cover', sub: '表紙' },
+  { key: 'cast', label: 'Characters', sub: '相関図' },
+  { key: 'plot', label: 'Structure', sub: '構成' },
+  { key: 'toc', label: 'Contents', sub: '目次・本文' },
+  { key: 'refs', label: 'References', sub: '参考画像' },
+  { key: 'music', label: 'Music', sub: 'イメージ音楽' },
 ] as const
 
 export default function WorkShell() {
@@ -38,7 +38,7 @@ export default function WorkShell() {
     <div className="work">
       <aside className="worknav">
         <a className="back-link" href="#/">
-          <Icon name="back" size={18} /> 作品一覧
+          <Icon name="back" size={14} /> Solo Study
         </a>
         <p className="worknav-title">{work.title || '無題'}</p>
         <nav className="tabs" aria-label="作品のページ">
@@ -51,19 +51,19 @@ export default function WorkShell() {
         </nav>
         <dl className="worknav-stats">
           <div>
-            <dt>本文</dt>
-            <dd>{fmtNum(work.charCount || 0)} 字</dd>
+            <dt>Words</dt>
+            <dd>{fmtNum(work.charCount || 0)}<small>字</small></dd>
           </div>
           <div>
-            <dt>原稿用紙</dt>
-            <dd>{fmtNum(sheets)} 枚</dd>
+            <dt>Sheets</dt>
+            <dd>{fmtNum(sheets)}<small>枚</small></dd>
           </div>
           <div>
-            <dt>章</dt>
+            <dt>Chapters</dt>
             <dd>{chapters?.length ?? 0}</dd>
           </div>
           <div>
-            <dt>人物</dt>
+            <dt>Cast</dt>
             <dd>{work.characters.length}</dd>
           </div>
         </dl>

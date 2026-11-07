@@ -36,29 +36,26 @@ export default function Library() {
     <div className="library">
       <header className="lib-head">
         <div className="lib-brand">
-          <h1>物語の書斎</h1>
-          <p>
+          <h1>Solo Study</h1>
+          <p className="lib-tagline">自分だけの、自由な書斎</p>
+          <p className="lib-count">
             {works ? `${works.length} 作品` : '…'}
             {works && works.length > 0 && <> ・ これまでに {fmtNum(total)} 字</>}
           </p>
         </div>
         <div className="lib-actions">
-          <button className="btn ghost" onClick={() => fileRef.current?.click()}>
-            <Icon name="upload" size={18} /> バックアップを読み込む
+          <button className="text-btn" onClick={() => fileRef.current?.click()}>
+            読み込む
           </button>
           <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => onImport(e.target.files?.[0])} />
           <button className="btn primary" onClick={onNew}>
-            <Icon name="plus" size={18} /> 新しい作品
+            <Icon name="plus" size={14} /> 新しい作品
           </button>
         </div>
       </header>
 
       {works && works.length === 0 && (
         <section className="lib-empty">
-          <div className="lib-empty-art" aria-hidden="true">
-            <span>物</span>
-            <span>語</span>
-          </div>
           <div>
             <h2>最初の一冊をはじめましょう</h2>
             <p>
@@ -67,7 +64,7 @@ export default function Library() {
             </p>
             <div className="row">
               <button className="btn primary" onClick={onNew}>
-                <Icon name="plus" size={18} /> 新しい作品をつくる
+                新しい作品をつくる
               </button>
               <button className="btn ghost" onClick={onSample}>
                 サンプル作品で試す
@@ -105,7 +102,6 @@ export default function Library() {
           </li>
         </ul>
       )}
-      <p className="lib-foot">原稿用紙換算は 400 字詰め（1 行 20 字・改行で次の行）で数えています。</p>
     </div>
   )
 }

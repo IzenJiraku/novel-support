@@ -32,8 +32,10 @@ export default function Toc() {
   return (
     <section className="sec">
       <header className="sec-head">
-        <h2>目次</h2>
-        <p className="sec-hint">章を並べ替えたり名前を変えたりできます。「書く」で執筆画面が開きます。</p>
+        <h2 className="sec-title">
+          <span className="en">Contents</span>
+          <span className="ja">目次</span>
+        </h2>
       </header>
 
       <div className="toc-book">
