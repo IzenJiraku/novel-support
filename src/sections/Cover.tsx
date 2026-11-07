@@ -113,7 +113,6 @@ export default function Cover() {
           <span className="en">Cover</span>
           <span className="ja">表紙</span>
         </h2>
-        <p className="sec-hint">写真を選んで、物語の雰囲気に合うポスターをつくります。プレビューをドラッグすると、選んだ要素を動かせます。</p>
       </header>
 
       <div className="cover-grid">

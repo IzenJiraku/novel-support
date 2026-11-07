@@ -75,7 +75,6 @@ export default function Refs() {
           <span className="en">References</span>
           <span className="ja">参考画像</span>
         </h2>
-        <p className="sec-hint">風景、衣装、小物、雰囲気の資料をまとめておく場所です。PCでは画像をここへドラッグしても追加できます。</p>
       </header>
 
       <div className="refs-bar">

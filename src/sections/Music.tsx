@@ -48,7 +48,6 @@ export default function Music() {
           <span className="en">Music</span>
           <span className="ja">イメージ音楽</span>
         </h2>
-        <p className="sec-hint">曲を人物や場面（章・構成）に結びつけると、プロフィールや執筆画面からすぐ流せます。</p>
       </header>
 
       <form

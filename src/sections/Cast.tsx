@@ -173,7 +173,6 @@ export default function Cast() {
           <span className="en">Characters</span>
           <span className="ja">相関図</span>
         </h2>
-        <p className="sec-hint">人物をドラッグして配置し、押すとプロフィール（履歴書）が開きます。関係の文字を押すと編集できます。</p>
       </header>
 
       <div className="cast-toolbar">
@@ -274,7 +273,7 @@ function Diagram({ work, view }: { work: Work; view: View }) {
           <path d="M40 0H0V40" fill="none" className="grid-line" />
         </pattern>
       </defs>
-      <rect x="0" y="0" width="100%" height="100%" fill="url(#grid)" className="cast-bg" />
+      
       <g transform={`translate(${view.tx} ${view.ty}) scale(${view.k})`}>
         {work.relations.map((r) => {
           const a = byId.get(r.from)
@@ -319,7 +318,7 @@ function Diagram({ work, view }: { work: Work; view: View }) {
               <path d={`M${sx} ${sy} Q${cx} ${cy} ${ex} ${ey}`} fill="none" stroke="transparent" strokeWidth={16} />
               {r.label && (
                 <g transform={`translate(${mx} ${my})`} className="edge-label">
-                  <rect x={-w / 2} y={-13} width={w} height={26} rx={13} stroke={r.color} />
+                  <rect x={-w / 2} y={-13} width={w} height={26} rx={0} stroke={r.color} />
                   <text textAnchor="middle" dy="0.35em" fill={r.color}>
                     {r.label}
                   </text>

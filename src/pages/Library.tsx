@@ -44,7 +44,7 @@ export default function Library() {
           </p>
         </div>
         <div className="lib-actions">
-          <button className="btn ghost" onClick={() => fileRef.current?.click()}>
+          <button className="text-btn" onClick={() => fileRef.current?.click()}>
             読み込む
           </button>
           <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => onImport(e.target.files?.[0])} />
@@ -56,10 +56,6 @@ export default function Library() {
 
       {works && works.length === 0 && (
         <section className="lib-empty">
-          <div className="lib-empty-art" aria-hidden="true">
-            <span>Solo</span>
-            <span>Study</span>
-          </div>
           <div>
             <h2>最初の一冊をはじめましょう</h2>
             <p>
@@ -106,7 +102,6 @@ export default function Library() {
           </li>
         </ul>
       )}
-      <p className="lib-foot">原稿用紙換算は 400 字詰め（1 行 20 字・改行で次の行）で数えています。</p>
     </div>
   )
 }

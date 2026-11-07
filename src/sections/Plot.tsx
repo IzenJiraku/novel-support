@@ -32,7 +32,6 @@ export default function Plot() {
           <span className="en">Structure</span>
           <span className="ja">構成</span>
         </h2>
-        <p className="sec-hint">物語の骨組みを段階ごとに書き出します。型を選ぶと見出しが入ります。</p>
       </header>
 
       <div className="seg" role="group" aria-label="構成の型">
