@@ -49,7 +49,7 @@ export default function Refs() {
     setView(null)
   }
 
-  const useAsCover = (fileId: string) => {
+  const setAsCover = (fileId: string) => {
     update((w) => {
       w.cover.bgId = fileId
       w.cover.zoom = 1
@@ -118,7 +118,7 @@ export default function Refs() {
                 削除
               </button>
               <span className="ed-spacer" />
-              <button className="btn primary" onClick={() => useAsCover(viewing.fileId)}>
+              <button className="btn primary" onClick={() => setAsCover(viewing.fileId)}>
                 表紙の背景に使う
               </button>
             </>
