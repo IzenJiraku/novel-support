@@ -29,7 +29,6 @@ export default function Plot() {
     <section className="sec">
       <header className="sec-head">
         <h2 className="sec-title">
-          <span className="en">Structure</span>
           <span className="ja">構成</span>
         </h2>
       </header>
@@ -63,7 +62,6 @@ export default function Plot() {
               <AutoArea
                 className="beat-text"
                 value={b.text}
-                placeholder="ここで起きること、人物の変化、伏線など"
                 aria-label={`${b.label}の内容`}
                 onChange={(e) =>
                   update((w) => {

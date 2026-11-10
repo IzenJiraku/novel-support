@@ -110,7 +110,6 @@ export default function Cover() {
     <section className="sec">
       <header className="sec-head">
         <h2 className="sec-title">
-          <span className="en">Cover</span>
           <span className="ja">表紙</span>
         </h2>
       </header>

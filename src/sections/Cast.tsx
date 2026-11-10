@@ -53,6 +53,8 @@ export default function Cast() {
   const pointers = useRef(new Map<number, { x: number; y: number }>())
   const viewRef = useRef(view)
   viewRef.current = view
+  const workRef = useRef(work)
+  workRef.current = work
 
   const zoomAt = (px: number, py: number, k2: number) => {
     const v = viewRef.current
@@ -65,16 +67,78 @@ export default function Cast() {
   useEffect(() => {
     const svg = svgRef.current
     if (!svg) return
+    // ホイールはページのスクロールに任せ、ピンチ（ctrl+ホイール）のときだけ拡大縮小する
     const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey) return
       e.preventDefault()
       const r = svg.getBoundingClientRect()
-      zoomAt(e.clientX - r.left, e.clientY - r.top, viewRef.current.k * Math.exp(-e.deltaY * 0.0015))
+      zoomAt(e.clientX - r.left, e.clientY - r.top, viewRef.current.k * Math.exp(-e.deltaY * 0.01))
+    }
+    // タッチ：1本指は普通のスクロール（タップで人物を開く）、2本指で移動と拡大縮小
+    let pinch: { cx: number; cy: number; d: number } | null = null
+    let tap: { x: number; y: number; target: Element; moved: boolean } | null = null
+    const mid = (t: TouchList) => {
+      const r = svg.getBoundingClientRect()
+      const [a, b] = [t[0], t[1]]
+      return { cx: (a.clientX + b.clientX) / 2 - r.left, cy: (a.clientY + b.clientY) / 2 - r.top, d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) }
+    }
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault()
+        pinch = mid(e.touches)
+        tap = null
+      } else if (e.touches.length === 1) {
+        const t = e.touches[0]
+        tap = { x: t.clientX, y: t.clientY, target: e.target as Element, moved: false }
+      }
+    }
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && pinch) {
+        e.preventDefault()
+        const m = mid(e.touches)
+        const v = viewRef.current
+        const k = Math.max(0.3, Math.min(2.5, v.k * (m.d / pinch.d)))
+        const wx = (pinch.cx - v.tx) / v.k
+        const wy = (pinch.cy - v.ty) / v.k
+        setView({ k, tx: m.cx - wx * k, ty: m.cy - wy * k })
+        viewRef.current = { k, tx: m.cx - wx * k, ty: m.cy - wy * k }
+        pinch = m
+      } else if (tap) {
+        const t = e.touches[0]
+        if (Math.abs(t.clientX - tap.x) + Math.abs(t.clientY - tap.y) > 8) tap.moved = true
+      }
+    }
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) pinch = null
+      if (e.touches.length === 0 && tap && !tap.moved) {
+        const node = tap.target.closest('[data-node]') as HTMLElement | null
+        const edge = tap.target.closest('[data-edge]') as HTMLElement | null
+        if (node?.dataset.node) {
+          e.preventDefault()
+          setOpenEdit(false)
+          setOpenId(node.dataset.node)
+        } else if (edge?.dataset.edge) {
+          e.preventDefault()
+          const r = workRef.current.relations.find((r) => r.id === edge.dataset.edge)
+          if (r) setRel(r)
+        }
+      }
+      if (e.touches.length === 0) tap = null
     }
     svg.addEventListener('wheel', onWheel, { passive: false })
-    return () => svg.removeEventListener('wheel', onWheel)
+    svg.addEventListener('touchstart', onTouchStart, { passive: false })
+    svg.addEventListener('touchmove', onTouchMove, { passive: false })
+    svg.addEventListener('touchend', onTouchEnd, { passive: false })
+    return () => {
+      svg.removeEventListener('wheel', onWheel)
+      svg.removeEventListener('touchstart', onTouchStart)
+      svg.removeEventListener('touchmove', onTouchMove)
+      svg.removeEventListener('touchend', onTouchEnd)
+    }
   }, [])
 
   const onDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') return
     const svg = svgRef.current!
     svg.setPointerCapture(e.pointerId)
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
@@ -96,6 +160,7 @@ export default function Cast() {
   }
 
   const onMove = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') return
     const d = drag.current
     if (!d) return
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
@@ -128,6 +193,7 @@ export default function Cast() {
   }
 
   const onUp = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') return
     pointers.current.delete(e.pointerId)
     const d = drag.current
     if (!d) return
@@ -170,7 +236,6 @@ export default function Cast() {
     <section className="sec">
       <header className="sec-head">
         <h2 className="sec-title">
-          <span className="en">Characters</span>
           <span className="ja">相関図</span>
         </h2>
       </header>
@@ -198,14 +263,6 @@ export default function Cast() {
         <svg ref={svgRef} className="cast-svg" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
           <Diagram work={work} view={view} />
         </svg>
-        {work.characters.length === 0 && (
-          <div className="cast-empty">
-            <p>まだ登場人物がいません。</p>
-            <button className="btn primary" onClick={addCharacter}>
-              <Icon name="person" size={18} /> 最初の人物を追加
-            </button>
-          </div>
-        )}
       </div>
 
       {work.characters.length > 0 && (

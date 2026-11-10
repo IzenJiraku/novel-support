@@ -72,7 +72,6 @@ export default function Refs() {
     >
       <header className="sec-head">
         <h2 className="sec-title">
-          <span className="en">References</span>
           <span className="ja">参考画像</span>
         </h2>
       </header>
@@ -96,12 +95,7 @@ export default function Refs() {
         )}
       </div>
 
-      {work.refs.length === 0 ? (
-        <button className="drop-empty" onClick={() => fileRef.current?.click()}>
-          <Icon name="image" size={28} />
-          <span>まだ画像がありません。押して画像を選んでください。</span>
-        </button>
-      ) : (
+      {work.refs.length > 0 && (
         <ul className="refs">
           {list.map((r) => (
             <li key={r.id} className="ref">
@@ -109,7 +103,7 @@ export default function Refs() {
                 <FileImage id={r.fileId} alt={r.caption} />
               </button>
               <input className="ref-cap" value={r.caption} placeholder="メモ" aria-label="メモ" onChange={(e) => setField(r.id, 'caption', e.target.value)} />
-              <input className="ref-tag" value={r.tag} placeholder="タグ（例：舞台、衣装）" aria-label="タグ" onChange={(e) => setField(r.id, 'tag', e.target.value)} />
+              <input className="ref-tag" value={r.tag} placeholder="タグ" aria-label="タグ" onChange={(e) => setField(r.id, 'tag', e.target.value)} />
             </li>
           ))}
         </ul>

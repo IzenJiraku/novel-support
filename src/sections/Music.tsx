@@ -45,7 +45,6 @@ export default function Music() {
     <section className="sec">
       <header className="sec-head">
         <h2 className="sec-title">
-          <span className="en">Music</span>
           <span className="ja">イメージ音楽</span>
         </h2>
       </header>
@@ -59,7 +58,7 @@ export default function Music() {
       >
         <input value={draft.title} placeholder="曲名" aria-label="曲名" onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
         <input value={draft.artist} placeholder="アーティスト" aria-label="アーティスト" onChange={(e) => setDraft({ ...draft, artist: e.target.value })} />
-        <input value={draft.url} placeholder="URL（YouTube・Spotify など）" aria-label="URL" inputMode="url" onChange={(e) => setDraft({ ...draft, url: e.target.value })} />
+        <input value={draft.url} placeholder="URL" aria-label="URL" inputMode="url" onChange={(e) => setDraft({ ...draft, url: e.target.value })} />
         <button className="btn primary small" type="submit">
           追加
         </button>
@@ -80,8 +79,6 @@ export default function Music() {
           ))}
         </div>
       )}
-
-      {work.music.length === 0 && <p className="muted music-empty">まだ曲がありません。曲名かURLを入れて追加してください。</p>}
 
       {view === 'list' && work.music.length > 0 && (
         <ol className="tracks">
@@ -128,9 +125,7 @@ function Group({ title, sub, tracks }: { title: string; sub?: string; tracks: Tr
             <TrackChip key={t.id} t={t} />
           ))}
         </div>
-      ) : (
-        <p className="muted small-text">まだ曲がありません</p>
-      )}
+      ) : null}
     </section>
   )
 }
@@ -193,7 +188,7 @@ function TrackRow({ t, i, last, chapters }: { t: Track; i: number; last: boolean
           <input className="track-title" value={t.title} placeholder="曲名" aria-label="曲名" onChange={(e) => set({ title: e.target.value })} />
           <input className="track-artist" value={t.artist} placeholder="アーティスト" aria-label="アーティスト" onChange={(e) => set({ artist: e.target.value })} />
         </div>
-        <AutoArea className="track-scene" value={t.scene} placeholder="メモ（どんな気分の曲か）" aria-label="メモ" onChange={(e) => set({ scene: e.target.value })} />
+        <AutoArea className="track-scene" value={t.scene} placeholder="メモ" aria-label="メモ" onChange={(e) => set({ scene: e.target.value })} />
 
         <div className="track-links">
           {tagNames.map((n, k) => (
@@ -211,7 +206,6 @@ function TrackRow({ t, i, last, chapters }: { t: Track; i: number; last: boolean
             <div>
               <p className="link-label">人物</p>
               <div className="chip-row">
-                {work.characters.length === 0 && <span className="muted small-text">相関図で人物を追加すると選べます</span>}
                 {work.characters.map((c) => (
                   <button key={c.id} className={'chip' + (links.characterIds.includes(c.id) ? ' on' : '')} onClick={() => toggle('characterIds', c.id)}>
                     {c.name || '名前未設定'}

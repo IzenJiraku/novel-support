@@ -13,13 +13,13 @@ import Refs from '../sections/Refs'
 import Music from '../sections/Music'
 
 const TABS = [
-  { key: 'overview', label: 'Overview', sub: '概要' },
-  { key: 'cover', label: 'Cover', sub: '表紙' },
-  { key: 'cast', label: 'Characters', sub: '相関図' },
-  { key: 'plot', label: 'Structure', sub: '構成' },
-  { key: 'toc', label: 'Contents', sub: '目次・本文' },
-  { key: 'refs', label: 'References', sub: '参考画像' },
-  { key: 'music', label: 'Music', sub: 'イメージ音楽' },
+  { key: 'overview', label: '概要' },
+  { key: 'cover', label: '表紙' },
+  { key: 'cast', label: '相関図' },
+  { key: 'plot', label: '構成' },
+  { key: 'toc', label: '目次・本文' },
+  { key: 'refs', label: '参考画像' },
+  { key: 'music', label: '音楽' },
 ] as const
 
 export default function WorkShell() {
@@ -45,28 +45,15 @@ export default function WorkShell() {
           {TABS.map((t) => (
             <NavLink key={t.key} to={`../${t.key}`} className={({ isActive }) => 'tab' + (isActive ? ' active' : '')}>
               <span className="tab-label">{t.label}</span>
-              <span className="tab-sub">{t.sub}</span>
             </NavLink>
           ))}
         </nav>
-        <dl className="worknav-stats">
-          <div>
-            <dt>Words</dt>
-            <dd>{fmtNum(work.charCount || 0)}<small>字</small></dd>
-          </div>
-          <div>
-            <dt>Sheets</dt>
-            <dd>{fmtNum(sheets)}<small>枚</small></dd>
-          </div>
-          <div>
-            <dt>Chapters</dt>
-            <dd>{chapters?.length ?? 0}</dd>
-          </div>
-          <div>
-            <dt>Cast</dt>
-            <dd>{work.characters.length}</dd>
-          </div>
-        </dl>
+        <p className="worknav-stats">
+          <span>{fmtNum(work.charCount || 0)}<small>字</small></span>
+          <span>{fmtNum(sheets)}<small>枚</small></span>
+          <span>{chapters?.length ?? 0}<small>章</small></span>
+          <span>{work.characters.length}<small>人</small></span>
+        </p>
       </aside>
       <main className="workmain" key={tab}>
         <Section />
