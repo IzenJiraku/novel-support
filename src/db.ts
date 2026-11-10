@@ -161,18 +161,46 @@ export interface StoredFile {
   createdAt: number
 }
 
+/** アイデアの断片。作品に属さず、あとで掛け合わせるために貯めておく */
+export interface Piece {
+  id: string
+  text: string
+  kind: string
+  createdAt: number
+}
+
+/** 断片を掛け合わせて生まれたひらめき */
+export interface Spark {
+  id: string
+  pieceIds: string[]
+  /** 掛け合わせた時点の断片の文面（元の断片を消しても残るように） */
+  texts: string[]
+  note: string
+  workId: string | null
+  createdAt: number
+}
+
+export const PIECE_KINDS = ['人物', '場所', '出来事', 'もの', 'ことば', 'テーマ'] as const
+
 /* ───────── DB ───────── */
 
 export const db = new Dexie('monogatari-shosai') as Dexie & {
   works: EntityTable<Work, 'id'>
   chapters: EntityTable<Chapter, 'id'>
   files: EntityTable<StoredFile, 'id'>
+  pieces: EntityTable<Piece, 'id'>
+  sparks: EntityTable<Spark, 'id'>
 }
 
 db.version(1).stores({
   works: 'id, updatedAt',
   chapters: 'id, workId, [workId+order], updatedAt',
   files: 'id, workId',
+})
+
+db.version(2).stores({
+  pieces: 'id, createdAt, kind',
+  sparks: 'id, createdAt',
 })
 
 /* ───────── ユーティリティ ───────── */
@@ -382,7 +410,10 @@ export async function exportWorkJSON(workId: string) {
   const fileData = await Promise.all(
     files.map(async (f) => ({ id: f.id, name: f.name, type: f.type, data: await blobToDataURL(f.blob) })),
   )
-  return JSON.stringify({ format: 'monogatari-shosai', version: 1, work, chapters, files: fileData })
+  // 断片とひらめきは作品をまたぐものなので、どの作品のバックアップにも全部入れておく
+  const pieces = await db.pieces.toArray()
+  const sparks = await db.sparks.toArray()
+  return JSON.stringify({ format: 'monogatari-shosai', version: 1, work, chapters, files: fileData, pieces, sparks })
 }
 
 export async function importWorkJSON(text: string) {
@@ -400,8 +431,15 @@ export async function importWorkJSON(text: string) {
   const chMap = new Map<string, string>()
   for (const c of data.chapters || []) chMap.set(c.id, uid())
   w.music = w.music.map((m) => ({ ...m, fileId: remap(m.fileId), chapterIds: (m.chapterIds ?? []).map((id) => chMap.get(id) ?? id) }))
-  await db.transaction('rw', db.works, db.chapters, db.files, async () => {
+  await db.transaction('rw', [db.works, db.chapters, db.files, db.pieces, db.sparks], async () => {
     await db.works.add(w)
+    // 断片・ひらめきは同じものがすでにあれば残し、無いものだけ足す
+    for (const p of (data.pieces ?? []) as Piece[]) if (!(await db.pieces.get(p.id))) await db.pieces.add(p)
+    for (const sp of (data.sparks ?? []) as Spark[]) {
+      if (await db.sparks.get(sp.id)) continue
+      const wid = sp.workId === data.work.id ? newId : sp.workId && (await db.works.get(sp.workId)) ? sp.workId : null
+      await db.sparks.add({ ...sp, workId: wid })
+    }
     for (const c of data.chapters || []) await db.chapters.add({ ...c, id: chMap.get(c.id)!, workId: newId })
     for (const f of data.files || []) {
       const blob = await (await fetch(f.data)).blob()
