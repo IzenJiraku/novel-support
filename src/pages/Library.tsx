@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createWork, db, importWorkJSON } from '../db'
-import { Icon, toast } from '../ui'
+import { toast } from '../ui'
 import CoverThumb from '../components/CoverThumb'
 
 export default function Library() {
@@ -28,15 +28,15 @@ export default function Library() {
   return (
     <div className="library">
       <header className="lib-head">
-        <div className="lib-brand">
-          <h1>Solo Study</h1>
-          <p className="lib-tagline">自分だけの、自由な書斎</p>
-        </div>
+        <h1 className="logo">Solo Study</h1>
         <div className="lib-actions">
-          <a className="text-btn" href="#/pieces">
+          <button className="btn primary" onClick={onNew}>
+            新しい作品
+          </button>
+          <a className="btn" href="#/pieces">
             断片
           </a>
-          <button className="text-btn" onClick={() => fileRef.current?.click()}>
+          <button className="btn" onClick={() => fileRef.current?.click()}>
             バックアップを読み込む
           </button>
           <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => onImport(e.target.files?.[0])} />
@@ -49,21 +49,11 @@ export default function Library() {
             <li key={w.id}>
               <a className="book" href={`#/w/${w.id}/overview`}>
                 <CoverThumb work={w} />
-                <div className="book-meta">
-                  <span className={'status status-' + w.status}>{w.status}</span>
-                  <h3>{w.title || '無題'}</h3>
-                </div>
+                <span className="book-title">{w.title || '無題'}</span>
+                <span className="meta">{w.status}</span>
               </a>
             </li>
           ))}
-          <li>
-            <button className="book book-new" onClick={onNew}>
-              <span className="book-new-box">
-                <Icon name="plus" size={28} />
-                新しい作品
-              </span>
-            </button>
-          </li>
         </ul>
       )}
     </div>

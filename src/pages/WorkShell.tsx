@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { NavLink, Navigate, useParams } from 'react-router-dom'
 import { db, manuscriptSheets } from '../db'
 import { useWork } from '../workContext'
-import { Icon, fmtNum } from '../ui'
+import { fmtNum } from '../ui'
 import Overview from '../sections/Overview'
 import Cover from '../sections/Cover'
 import Cast from '../sections/Cast'
@@ -37,22 +37,22 @@ export default function WorkShell() {
   return (
     <div className="work">
       <aside className="worknav">
-        <a className="back-link" href="#/">
-          <Icon name="back" size={14} /> Solo Study
+        <a className="logo" href="#/">
+          Solo Study
         </a>
         <p className="worknav-title">{work.title || '無題'}</p>
         <nav className="tabs" aria-label="作品のページ">
           {TABS.map((t) => (
             <NavLink key={t.key} to={`../${t.key}`} className={({ isActive }) => 'tab' + (isActive ? ' active' : '')}>
-              <span className="tab-label">{t.label}</span>
+              {t.label}
             </NavLink>
           ))}
         </nav>
-        <p className="worknav-stats">
-          <span>{fmtNum(work.charCount || 0)}<small>字</small></span>
-          <span>{fmtNum(sheets)}<small>枚</small></span>
-          <span>{chapters?.length ?? 0}<small>章</small></span>
-          <span>{work.characters.length}<small>人</small></span>
+        <p className="worknav-stats meta">
+          <span>{fmtNum(work.charCount || 0)} 字</span>
+          <span>{fmtNum(sheets)} 枚</span>
+          <span>{chapters?.length ?? 0} 章</span>
+          <span>{work.characters.length} 人</span>
         </p>
       </aside>
       <main className="workmain" key={tab}>

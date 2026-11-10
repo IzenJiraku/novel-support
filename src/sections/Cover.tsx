@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { defaultCover, downloadBlob, prepareImage, removeFile, safeName, saveFile, uid, type CoverSettings, type TextLayer } from '../db'
 import { useWork } from '../workContext'
-import { FileImage, Icon, Modal, fileURL, toast } from '../ui'
+import { FileImage, Modal, fileURL, toast } from '../ui'
 import { COVER_H, COVER_W, FONTS, PRESETS, ensureLayer, renderCover } from './coverRender'
 
 type Target = 'bg' | 'title' | 'copy' | 'author'
@@ -109,9 +109,7 @@ export default function Cover() {
   return (
     <section className="sec">
       <header className="sec-head">
-        <h2 className="sec-title">
-          <span className="ja">表紙</span>
-        </h2>
+        <h2>表紙</h2>
       </header>
 
       <div className="cover-grid">
@@ -127,7 +125,7 @@ export default function Cover() {
             onPointerCancel={onUp}
             aria-label="表紙のプレビュー"
           />
-          <div className="seg small drag-target" role="group" aria-label="ドラッグで動かすもの">
+          <div className="seg drag-target" role="group" aria-label="ドラッグで動かすもの">
             {(
               [
                 ['bg', '写真'],
@@ -145,23 +143,17 @@ export default function Cover() {
             <button className="btn primary" onClick={saveAsCover} disabled={saving}>
               {saving ? '保存しています…' : '表紙として保存'}
             </button>
-            <button className="btn ghost" onClick={downloadPng}>
-              <Icon name="download" size={18} /> 画像を書き出す
+            <button className="btn" onClick={downloadPng}>
+              画像を書き出す
             </button>
           </div>
-          {work.coverImageId && (
-            <p className="field-hint">
-              いまの表紙：
-              <FileImage id={work.coverImageId} className="cover-mini" alt="現在の表紙" />
-            </p>
-          )}
         </div>
 
         <div className="cover-controls">
           <Group title="テンプレート">
-            <div className="presets">
+            <div className="seg">
               {Object.entries(PRESETS).map(([k, p]) => (
-                <button key={k} className={'preset' + (s.preset === k ? ' on' : '')} onClick={() => setS((c) => Object.assign(c, p.apply(c)))}>
+                <button key={k} className={'seg-btn' + (s.preset === k ? ' on' : '')} onClick={() => setS((c) => Object.assign(c, p.apply(c)))}>
                   {p.name}
                 </button>
               ))}
@@ -170,15 +162,15 @@ export default function Cover() {
 
           <Group title="写真">
             <div className="row">
-              <button className="btn ghost small" onClick={() => fileRef.current?.click()}>
-                <Icon name="upload" size={16} /> 写真を選ぶ
+              <button className="btn" onClick={() => fileRef.current?.click()}>
+                写真を選ぶ
               </button>
               <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => onBgFile(e.target.files?.[0])} />
-              <button className="btn ghost small" onClick={() => setPicker(true)} disabled={work.refs.length === 0}>
-                <Icon name="image" size={16} /> 参考画像から
+              <button className="btn" onClick={() => setPicker(true)} disabled={work.refs.length === 0}>
+                参考画像から
               </button>
               {s.bgId && (
-                <button className="btn ghost small" onClick={() => setS((c) => void (c.bgId = null))}>
+                <button className="btn" onClick={() => setS((c) => void (c.bgId = null))}>
                   外す
                 </button>
               )}
@@ -211,7 +203,7 @@ export default function Cover() {
             <Range label="かぶせる濃さ" min={0} max={0.9} step={0.01} v={s.tintA} on={(v) => setS((c) => void (c.tintA = v))} fmt={(v) => `${Math.round(v * 100)}%`} />
             <div className="field">
               <span className="field-label">影のグラデーション</span>
-              <div className="seg small">
+              <div className="seg">
                 {(
                   [
                     ['none', 'なし'],
@@ -231,7 +223,7 @@ export default function Cover() {
             <Range label="フィルムの粒子" min={0} max={0.4} step={0.01} v={s.grain} on={(v) => setS((c) => void (c.grain = v))} fmt={(v) => `${Math.round(v * 100)}%`} />
             <div className="field">
               <span className="field-label">枠線</span>
-              <div className="seg small">
+              <div className="seg">
                 {(
                   [
                     ['none', 'なし'],
@@ -247,9 +239,9 @@ export default function Cover() {
             </div>
           </Group>
 
-          <LayerControls title="タイトル" k="title" l={ensureLayer(s.title)} text={texts.title} auto="作品のタイトル" setL={setL} multiline />
-          <LayerControls title="キャッチコピー" k="copy" l={ensureLayer(s.copy)} text={texts.copy} auto="" setL={setL} multiline />
-          <LayerControls title="作者名" k="author" l={ensureLayer(s.author)} text={texts.author} auto="ペンネーム" setL={setL} />
+          <LayerControls title="タイトル" k="title" l={ensureLayer(s.title)} text={texts.title} setL={setL} multiline />
+          <LayerControls title="キャッチコピー" k="copy" l={ensureLayer(s.copy)} text={texts.copy} setL={setL} multiline />
+          <LayerControls title="作者名" k="author" l={ensureLayer(s.author)} text={texts.author} setL={setL} />
         </div>
       </div>
 
@@ -283,10 +275,10 @@ export default function Cover() {
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <details className="cgroup" open>
-      <summary>{title}</summary>
-      <div className="cgroup-body">{children}</div>
-    </details>
+    <section className="cgroup">
+      <h3>{title}</h3>
+      {children}
+    </section>
   )
 }
 
@@ -305,7 +297,6 @@ function LayerControls({
   k,
   l,
   text,
-  auto,
   setL,
   multiline,
 }: {
@@ -313,19 +304,15 @@ function LayerControls({
   k: LayerKey
   l: TextLayer
   text: string
-  auto: string
   setL: (k: LayerKey, p: Partial<TextLayer>) => void
   multiline?: boolean
 }) {
   return (
     <Group title={title}>
       <label className="field">
-        <span className="field-label">
-          文字
-          {auto && l.text === null && <small>（{auto}が自動で入ります）</small>}
-        </span>
+        <span className="field-label">文字</span>
         {multiline ? (
-          <textarea rows={2} value={text} placeholder="改行で行を分けられます" onChange={(e) => setL(k, { text: e.target.value })} />
+          <textarea rows={2} value={text} onChange={(e) => setL(k, { text: e.target.value })} />
         ) : (
           <input value={text} onChange={(e) => setL(k, { text: e.target.value })} />
         )}
@@ -356,8 +343,8 @@ function LayerControls({
         <label className="check">
           <input type="checkbox" checked={l.shadow} onChange={(e) => setL(k, { shadow: e.target.checked })} /> 影をつける
         </label>
-        <button className="btn ghost small" onClick={() => setL(k, { x: 0.5 })}>
-          左右中央に
+        <button className="btn" onClick={() => setL(k, { x: 0.5 })}>
+          中央に
         </button>
       </div>
     </Group>

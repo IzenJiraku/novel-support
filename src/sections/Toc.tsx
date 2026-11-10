@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { Link, useNavigate } from 'react-router-dom'
 import { countChars, db, recountWork, uid } from '../db'
 import { useWork } from '../workContext'
-import { Icon, confirmDialog, fmtNum } from '../ui'
+import { RowTools, confirmDialog, fmtNum } from '../ui'
 
 export default function Toc() {
   const { work, update } = useWork()
@@ -31,61 +31,41 @@ export default function Toc() {
   return (
     <section className="sec">
       <header className="sec-head">
-        <h2 className="sec-title">
-          <span className="ja">目次</span>
-        </h2>
+        <h2>目次</h2>
       </header>
 
-      <div className="toc-book">
-        <p className="toc-title">{work.title || '無題'}</p>
-        <ol className="toc">
+      <ol className="toc">
           {chapters?.map((c, i) => (
             <li key={c.id} className="toc-row">
-              <span className="toc-no">{String(i + 1).padStart(2, '0')}</span>
+              <span className="meta">{String(i + 1).padStart(2, '0')}</span>
               <input
                 className="toc-name"
                 value={c.title}
                 aria-label="章のタイトル"
                 onChange={(e) => db.chapters.update(c.id, { title: e.target.value, updatedAt: Date.now() })}
               />
-              <span className="toc-leader" aria-hidden="true" />
-              <span className="toc-count">
-                {fmtNum(countChars(c.body))} 字
-              </span>
-              <span className="toc-tools">
-                <Link className="btn small primary" to={`../write/${c.id}`}>
-                  <Icon name="pen" size={16} /> 書く
-                </Link>
-                <button className="icon-btn" onClick={() => swap(i, -1)} disabled={i === 0} aria-label="上へ">
-                  <Icon name="up" size={18} />
-                </button>
-                <button className="icon-btn" onClick={() => swap(i, 1)} disabled={i === chapters.length - 1} aria-label="下へ">
-                  <Icon name="down" size={18} />
-                </button>
-                <button
-                  className="icon-btn"
-                  aria-label="章を削除"
-                  onClick={async () => {
-                    if (!(await confirmDialog(`「${c.title || '無題の章'}」を削除します。この章の本文（${fmtNum(countChars(c.body))} 字）も消えます。`))) return
-                    await db.chapters.delete(c.id)
-                    const n = await recountWork(work.id)
-                    update((w) => {
-                      w.charCount = n
-                    })
-                  }}
-                >
-                  <Icon name="trash" size={18} />
-                </button>
-              </span>
+              <span className="meta">{fmtNum(countChars(c.body))} 字</span>
+              <Link className="btn primary" to={`../write/${c.id}`}>
+                書く
+              </Link>
+              <RowTools
+                onUp={i > 0 ? () => swap(i, -1) : undefined}
+                onDown={i < chapters.length - 1 ? () => swap(i, 1) : undefined}
+                onDelete={async () => {
+                  if (!(await confirmDialog(`「${c.title || '無題の章'}」を削除します。この章の本文（${fmtNum(countChars(c.body))} 字）も消えます。`))) return
+                  await db.chapters.delete(c.id)
+                  const n = await recountWork(work.id)
+                  update((w) => {
+                    w.charCount = n
+                  })
+                }}
+              />
             </li>
           ))}
-        </ol>
-        <div className="toc-foot">
-          <button className="btn ghost" onClick={add}>
-            <Icon name="plus" size={18} /> 章を追加
-          </button>
-        </div>
-      </div>
+      </ol>
+      <button className="btn" onClick={add}>
+        章を追加
+      </button>
     </section>
   )
 }

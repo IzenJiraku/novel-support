@@ -3,7 +3,7 @@ import { STATUSES, deleteWork, downloadBlob, exportWorkJSON, exportWorkText, saf
 import { useWork } from '../workContext'
 import { AreaField, TextField } from '../components/Field'
 import CoverThumb from '../components/CoverThumb'
-import { Icon, confirmDialog, toast } from '../ui'
+import { confirmDialog, toast } from '../ui'
 
 export default function Overview() {
   const { work, update, flush } = useWork()
@@ -23,16 +23,14 @@ export default function Overview() {
   return (
     <section className="sec">
       <header className="sec-head">
-        <h2 className="sec-title">
-          <span className="ja">概要</span>
-        </h2>
+        <h2>概要</h2>
       </header>
 
       <div className="ov-grid">
         <div className="ov-cover">
           <CoverThumb work={work} />
-          <a className="btn ghost small" href={`#/w/${work.id}/cover`}>
-            <Icon name="image" size={16} /> {work.coverImageId ? '表紙を編集' : '表紙をつくる'}
+          <a className="btn" href={`#/w/${work.id}/cover`}>
+            {work.coverImageId ? '表紙を編集' : '表紙をつくる'}
           </a>
         </div>
 
@@ -64,33 +62,33 @@ export default function Overview() {
             onChange={set('logline')}
            
           />
-          <AreaField label="あらすじ" count rows={8} value={work.synopsis} onChange={set('synopsis')} />
-          <AreaField label="テーマ・書きたいこと" rows={3} value={work.theme} onChange={set('theme')} />
-          <AreaField label="メモ" rows={3} value={work.memo} onChange={set('memo')} />
+          <AreaField label="あらすじ" count value={work.synopsis} onChange={set('synopsis')} />
+          <AreaField label="テーマ・書きたいこと" value={work.theme} onChange={set('theme')} />
+          <AreaField label="メモ" value={work.memo} onChange={set('memo')} />
         </div>
       </div>
 
       <footer className="ov-actions">
         <button
-          className="text-btn"
+          className="btn"
           onClick={async () => {
             await flush()
             downloadBlob(safeName(work.title) + '.txt', await exportWorkText(work.id))
           }}
         >
-          <Icon name="download" size={18} /> テキストで書き出す
+          テキストで書き出す
         </button>
         <button
-          className="text-btn"
+          className="btn"
           onClick={async () => {
             await flush()
             downloadBlob(safeName(work.title) + '.shosai.json', await exportWorkJSON(work.id), 'application/json')
           }}
         >
-          <Icon name="download" size={18} /> バックアップ
+          バックアップ
         </button>
-        <button className="text-btn danger-text" onClick={onDelete}>
-          <Icon name="trash" size={18} /> 削除
+        <button className="btn danger" onClick={onDelete}>
+          削除
         </button>
       </footer>
     </section>
