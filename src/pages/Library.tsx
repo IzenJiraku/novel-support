@@ -33,6 +33,9 @@ export default function Library() {
           <p className="lib-tagline">自分だけの、自由な書斎</p>
         </div>
         <div className="lib-actions">
+          <a className="text-btn" href="#/pieces">
+            断片
+          </a>
           <button className="text-btn" onClick={() => fileRef.current?.click()}>
             バックアップを読み込む
           </button>

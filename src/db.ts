@@ -161,18 +161,46 @@ export interface StoredFile {
   createdAt: number
 }
 
+/** アイデアの断片。作品に属さず、あとで掛け合わせるために貯めておく */
+export interface Piece {
+  id: string
+  text: string
+  kind: string
+  createdAt: number
+}
+
+/** 断片を掛け合わせて生まれたひらめき */
+export interface Spark {
+  id: string
+  pieceIds: string[]
+  /** 掛け合わせた時点の断片の文面（元の断片を消しても残るように） */
+  texts: string[]
+  note: string
+  workId: string | null
+  createdAt: number
+}
+
+export const PIECE_KINDS = ['人物', '場所', '出来事', 'もの', 'ことば', 'テーマ'] as const
+
 /* ───────── DB ───────── */
 
 export const db = new Dexie('monogatari-shosai') as Dexie & {
   works: EntityTable<Work, 'id'>
   chapters: EntityTable<Chapter, 'id'>
   files: EntityTable<StoredFile, 'id'>
+  pieces: EntityTable<Piece, 'id'>
+  sparks: EntityTable<Spark, 'id'>
 }
 
 db.version(1).stores({
   works: 'id, updatedAt',
   chapters: 'id, workId, [workId+order], updatedAt',
   files: 'id, workId',
+})
+
+db.version(2).stores({
+  pieces: 'id, createdAt, kind',
+  sparks: 'id, createdAt',
 })
 
 /* ───────── ユーティリティ ───────── */
