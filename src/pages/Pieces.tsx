@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PIECE_KINDS, createWork, db, uid, type Piece } from '../db'
 import { AutoArea } from '../components/Field'
-import { Icon, confirmDialog, fmtDate, toast } from '../ui'
+import { confirmDialog, fmtDate, toast } from '../ui'
 
 interface Slot {
   id: string
@@ -113,14 +113,11 @@ export default function Pieces() {
 
   return (
     <div className="pieces-page">
-      <a className="back-link" href="#/">
-        <Icon name="back" size={14} /> Solo Study
+      <a className="logo" href="#/">
+        Solo Study
       </a>
       <header className="sec-head">
-        <h2 className="sec-title">
-          <span className="en">Fragments</span>
-          <span className="ja">断片</span>
-        </h2>
+        <h2>断片</h2>
       </header>
 
       <form
@@ -131,14 +128,14 @@ export default function Pieces() {
         }}
       >
         <input value={text} onChange={(e) => setText(e.target.value)} placeholder="思いついたことを" aria-label="断片" />
-        <div className="pc-kinds" role="group" aria-label="種類">
+        <div className="seg" role="group" aria-label="種類">
           {PIECE_KINDS.map((k) => (
-            <button type="button" key={k} className={'pc-kind' + (kind === k ? ' on' : '')} onClick={() => setKind(kind === k ? '' : k)}>
+            <button type="button" key={k} className={'seg-btn' + (kind === k ? ' on' : '')} onClick={() => setKind(kind === k ? '' : k)}>
               {k}
             </button>
           ))}
         </div>
-        <button className="btn primary small" disabled={!text.trim()}>
+        <button className="btn primary" disabled={!text.trim()}>
           置く
         </button>
       </form>
@@ -146,16 +143,16 @@ export default function Pieces() {
       <div className="pc-grid">
         <section className="pc-table-area" aria-label="掛け合わせ">
           <div className="pc-bar">
-            <h3 className="sub-head">掛け合わせ</h3>
+            <h3>掛け合わせ</h3>
             <span className="ed-spacer" />
-            <div className="seg small" role="group" aria-label="引く数">
+            <div className="seg" role="group" aria-label="引く数">
               {[2, 3, 4].map((n) => (
                 <button key={n} className={'seg-btn' + (size === n ? ' on' : '')} onClick={() => setSize(n)}>
                   {n}
                 </button>
               ))}
             </div>
-            <button className="btn small" disabled={pieces.length < 2} onClick={() => setTable(draw(pieces, onTable, size))}>
+            <button className="btn primary" disabled={pieces.length < 2} onClick={() => setTable(draw(pieces, onTable, size))}>
               引く
             </button>
           </div>
@@ -166,16 +163,16 @@ export default function Pieces() {
                 const p = byId.get(s.id)!
                 return (
                   <li key={s.id} className={'pc-card' + (s.pinned ? ' pinned' : '')}>
-                    <span className="pc-card-kind">{p.kind}</span>
+                    <span className="meta">{p.kind}</span>
                     <p className="pc-card-text">{p.text}</p>
                     <div className="pc-card-tools">
                       <button
-                        className="text-btn"
+                        className="btn"
                         onClick={() => setTable((tb) => tb.map((x) => (x.id === s.id ? { ...x, pinned: !x.pinned } : x)))}
                       >
                         {s.pinned ? '固定中' : '固定'}
                       </button>
-                      <button className="text-btn" onClick={() => toggleOnTable(s.id)}>
+                      <button className="btn" onClick={() => toggleOnTable(s.id)}>
                         外す
                       </button>
                     </div>
@@ -183,14 +180,12 @@ export default function Pieces() {
                 )
               })}
             </ol>
-          ) : (
-            <p className="pc-empty">{pieces.length < 2 ? '断片が二つ以上たまったら、引けます。' : '「引く」か、右の断片を選んで並べる。'}</p>
-          )}
+          ) : null}
 
           {onTable.length >= 2 && (
             <div className="pc-note">
-              <AutoArea value={note} onChange={(e) => setNote(e.target.value)} placeholder="ここから何が生まれる？" aria-label="ひらめき" />
-              <button className="btn small" onClick={saveSpark} disabled={!note.trim()}>
+              <AutoArea value={note} onChange={(e) => setNote(e.target.value)} placeholder="ひらめき" aria-label="ひらめき" />
+              <button className="btn primary" onClick={saveSpark} disabled={!note.trim()}>
                 ひらめきを残す
               </button>
             </div>
@@ -198,32 +193,32 @@ export default function Pieces() {
 
           {sparks.length > 0 && (
             <>
-              <h3 className="sub-head">ひらめき</h3>
+              <h3>ひらめき</h3>
               <ul className="pc-sparks">
                 {sparks.map((s) => (
                   <li key={s.id} className="pc-spark">
-                    <p className="pc-spark-from">{s.texts.join('　×　')}</p>
+                    <p className="meta">{s.texts.join('　×　')}</p>
                     <p className="pc-spark-note">{s.note}</p>
                     <div className="pc-spark-tools">
-                      <span className="pc-date">{fmtDate(s.createdAt)}</span>
+                      <span className="meta">{fmtDate(s.createdAt)}</span>
                       <span className="ed-spacer" />
                       {s.workId ? (
-                        <a className="text-btn" href={`#/w/${s.workId}/overview`}>
+                        <a className="btn" href={`#/w/${s.workId}/overview`}>
                           作品をひらく
                         </a>
                       ) : (
-                        <button className="text-btn" onClick={() => toWork(s.id)}>
+                        <button className="btn" onClick={() => toWork(s.id)}>
                           作品にする
                         </button>
                       )}
                       <button
-                        className="text-btn"
+                        className="btn"
                         onClick={() => setTable(s.pieceIds.filter((id) => byId.has(id)).map((id) => ({ id, pinned: true })))}
                       >
                         卓に戻す
                       </button>
                       <button
-                        className="text-btn"
+                        className="btn"
                         onClick={async () => {
                           if (await confirmDialog('このひらめきを削除します。')) await db.sparks.delete(s.id)
                         }}
@@ -240,13 +235,13 @@ export default function Pieces() {
 
         <section className="pc-list-area" aria-label="断片">
           <div className="pc-bar">
-            <h3 className="sub-head">
-              断片 <small className="pc-count">{pieces.length}</small>
+            <h3>
+              断片 <small className="meta">{pieces.length}</small>
             </h3>
           </div>
-          <div className="pc-filter" role="group" aria-label="種類で絞る">
+          <div className="seg" role="group" aria-label="種類で絞る">
             {['', ...PIECE_KINDS].map((k) => (
-              <button key={k || 'all'} className={'pc-kind' + (filter === k ? ' on' : '')} onClick={() => setFilter(k)}>
+              <button key={k || 'all'} className={'seg-btn' + (filter === k ? ' on' : '')} onClick={() => setFilter(k)}>
                 {k || 'すべて'}
               </button>
             ))}
@@ -258,12 +253,14 @@ export default function Pieces() {
               ) : (
                 <li key={p.id} className={'pc-item' + (onTable.some((s) => s.id === p.id) ? ' on' : '')}>
                   <button className="pc-item-main" onClick={() => toggleOnTable(p.id)} aria-pressed={onTable.some((s) => s.id === p.id)}>
-                    <span className="pc-item-kind">{p.kind}</span>
+                    <span className="meta">{p.kind}</span>
                     <span className="pc-item-text">{p.text}</span>
                   </button>
-                  <button className="icon-btn" aria-label="直す" onClick={() => setEditing(p.id)}>
-                    <Icon name="pen" size={15} />
-                  </button>
+                  <span className="row-tools">
+                    <button className="btn" onClick={() => setEditing(p.id)}>
+                      直す
+                    </button>
+                  </span>
                 </li>
               ),
             )}
@@ -284,23 +281,23 @@ function PieceEditor({ piece, onDone }: { piece: Piece; onDone: () => void }) {
   return (
     <li className="pc-item editing">
       <AutoArea value={text} autoFocus onChange={(e) => setText(e.target.value)} aria-label="断片" />
-      <div className="pc-filter">
+      <div className="seg">
         {PIECE_KINDS.map((k) => (
-          <button key={k} className={'pc-kind' + (kind === k ? ' on' : '')} onClick={() => setKind(kind === k ? '' : k)}>
+          <button key={k} className={'seg-btn' + (kind === k ? ' on' : '')} onClick={() => setKind(kind === k ? '' : k)}>
             {k}
           </button>
         ))}
       </div>
       <div className="row">
-        <button className="btn small primary" onClick={save}>
+        <button className="btn primary" onClick={save}>
           保存
         </button>
-        <button className="btn small ghost" onClick={onDone}>
+        <button className="btn" onClick={onDone}>
           やめる
         </button>
         <span className="ed-spacer" />
         <button
-          className="text-btn danger-text"
+          className="btn danger"
           onClick={async () => {
             if (await confirmDialog('この断片を削除します。')) {
               await db.pieces.delete(piece.id)

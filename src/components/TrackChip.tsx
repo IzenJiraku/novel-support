@@ -50,25 +50,19 @@ export async function toggleTrack(t: Track) {
   }
 }
 
-/** 人物・章・構成から曲を呼び出す小さなチップ */
-export default function TrackChip({ t }: { t: Track }) {
+/** 人物・章・構成から曲を呼び出す文字だけの入口。鳴っている曲には下線がつく */
+export default function TrackChip({ t, label: text }: { t: Track; label?: string }) {
   const playing = usePlaying() === t.id
-  const label = t.title || '無題の曲'
+  const label = text ?? (t.title || '無題の曲')
   if (!t.fileId && t.url)
     return (
-      <a className="track-chip" href={t.url} target="_blank" rel="noreferrer" title="外部サービスで開く">
-        <span className="tc-icon" aria-hidden="true">↗</span>
-        <span className="tc-title">{label}</span>
-        {t.artist && <span className="tc-artist">{t.artist}</span>}
+      <a className="seg-btn" href={t.url} target="_blank" rel="noreferrer">
+        {label}
       </a>
     )
   return (
-    <button className={'track-chip' + (playing ? ' playing' : '')} onClick={() => toggleTrack(t)} disabled={!t.fileId} aria-pressed={playing}>
-      <span className="tc-icon" aria-hidden="true">
-        {playing ? <span className="eq"><i /><i /><i /></span> : '▶'}
-      </span>
-      <span className="tc-title">{label}</span>
-      {t.artist && <span className="tc-artist">{t.artist}</span>}
+    <button className={'seg-btn' + (playing ? ' on' : '')} onClick={() => toggleTrack(t)} disabled={!t.fileId} aria-pressed={playing}>
+      {label}
     </button>
   )
 }

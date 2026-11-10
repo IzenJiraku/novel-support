@@ -57,7 +57,7 @@ export function Modal({
   footer,
   wide,
 }: {
-  title: ReactNode
+  title?: ReactNode
   onClose: () => void
   children: ReactNode
   footer?: ReactNode
@@ -77,9 +77,9 @@ export function Modal({
     <div className="modal-back" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className={'modal' + (wide ? ' modal-wide' : '')} role="dialog" aria-modal="true">
         <header className="modal-head">
-          <h2>{title}</h2>
-          <button className="icon-btn" onClick={onClose} aria-label="閉じる">
-            <Icon name="close" />
+          {title ? <h2>{title}</h2> : <span />}
+          <button className="btn" onClick={onClose}>
+            閉じる
           </button>
         </header>
         <div className="modal-body">{children}</div>
@@ -102,13 +102,9 @@ export function confirmDialog(message: string, okLabel = '削除する'): Promis
     }
     root.render(
       <Modal
-        title="確認"
         onClose={() => done(false)}
         footer={
           <>
-            <button className="btn ghost" onClick={() => done(false)}>
-              やめる
-            </button>
             <button className="btn danger" autoFocus onClick={() => done(true)}>
               {okLabel}
             </button>
@@ -138,35 +134,21 @@ export function toast(msg: string) {
   toastTimer = window.setTimeout(() => toastEl?.classList.remove('show'), 2400)
 }
 
-/* ───────── アイコン（線画） ───────── */
+/* ───────── 行の操作（並べ替えと削除）。文字だけで、行に触れたときに現れる ───────── */
 
-const PATHS: Record<string, string> = {
-  close: 'M6 6l12 12M18 6L6 18',
-  plus: 'M12 5v14M5 12h14',
-  back: 'M15 5l-7 7 7 7',
-  up: 'M6 15l6-6 6 6',
-  down: 'M6 9l6 6 6-6',
-  trash: 'M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12',
-  pen: 'M4 20l4-1 11-11-3-3L5 16l-1 4z',
-  image: 'M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4M15 9.5a1 1 0 1 0 0-.01',
-  music: 'M9 18V6l10-2v12M9 18a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM19 16a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z',
-  link: 'M10 14a4 4 0 0 0 6 0l3-3a4 4 0 0 0-6-6l-1 1M14 10a4 4 0 0 0-6 0l-3 3a4 4 0 0 0 6 6l1-1',
-  settings: 'M4 7h10M18 7h2M4 17h4M12 17h8M14 5v4M8 15v4',
-  fit: 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5',
-  zoomin: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4M11 8v6M8 11h6',
-  zoomout: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4M8 11h6',
-  download: 'M12 4v11M7 10l5 5 5-5M5 20h14',
-  upload: 'M12 20V9M7 14l5-5 5 5M5 4h14',
-  expand: 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5',
-  person: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c1-4 4-6 8-6s7 2 8 6',
-  edge: 'M5 12h14M15 8l4 4-4 4',
-}
-
-export function Icon({ name, size = 20 }: { name: keyof typeof PATHS | string; size?: number }) {
+export function RowTools({ onUp, onDown, onDelete }: { onUp?: () => void; onDown?: () => void; onDelete: () => void }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d={PATHS[name] ?? ''} />
-    </svg>
+    <span className="row-tools">
+      <button className="btn" onClick={onUp} disabled={!onUp} aria-label="上へ">
+        ↑
+      </button>
+      <button className="btn" onClick={onDown} disabled={!onDown} aria-label="下へ">
+        ↓
+      </button>
+      <button className="btn" onClick={onDelete}>
+        削除
+      </button>
+    </span>
   )
 }
 

@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { prepareImage, removeFile, saveFile, uid } from '../db'
 import { useWork } from '../workContext'
-import { FileImage, Icon, Modal, confirmDialog, toast } from '../ui'
+import { FileImage, Modal, confirmDialog, toast } from '../ui'
 
 export default function Refs() {
   const { work, update } = useWork()
@@ -71,23 +71,21 @@ export default function Refs() {
       }}
     >
       <header className="sec-head">
-        <h2 className="sec-title">
-          <span className="ja">参考画像</span>
-        </h2>
+        <h2>参考画像</h2>
       </header>
 
       <div className="refs-bar">
-        <button className="btn primary small" onClick={() => fileRef.current?.click()} disabled={busy}>
-          <Icon name="image" size={16} /> {busy ? '追加しています…' : '画像を追加'}
+        <button className="btn primary" onClick={() => fileRef.current?.click()} disabled={busy}>
+          {busy ? '追加しています…' : '画像を追加'}
         </button>
         <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => onFiles(e.target.files)} />
         {tags.length > 0 && (
-          <div className="chips" role="group" aria-label="タグで絞り込む">
-            <button className={'chip' + (tag === null ? ' on' : '')} onClick={() => setTag(null)}>
+          <div className="seg" role="group" aria-label="タグで絞り込む">
+            <button className={'seg-btn' + (tag === null ? ' on' : '')} onClick={() => setTag(null)}>
               すべて
             </button>
             {tags.map((t) => (
-              <button key={t} className={'chip' + (tag === t ? ' on' : '')} onClick={() => setTag(t)}>
+              <button key={t} className={'seg-btn' + (tag === t ? ' on' : '')} onClick={() => setTag(t)}>
                 {t}
               </button>
             ))}
@@ -116,12 +114,12 @@ export default function Refs() {
           wide
           footer={
             <>
-              <button className="btn ghost danger-text" onClick={() => remove(viewing.id)}>
-                <Icon name="trash" size={16} /> 削除
+              <button className="btn danger" onClick={() => remove(viewing.id)}>
+                削除
               </button>
               <span className="ed-spacer" />
               <button className="btn primary" onClick={() => useAsCover(viewing.fileId)}>
-                <Icon name="image" size={16} /> 表紙の背景に使う
+                表紙の背景に使う
               </button>
             </>
           }

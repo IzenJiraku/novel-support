@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { countChars, db, manuscriptSheets, recountWork, trackLinks, type Chapter } from '../db'
 import TrackChip from '../components/TrackChip'
 import { useWork } from '../workContext'
-import { Icon, fmtNum, toast } from '../ui'
+import { fmtNum, toast } from '../ui'
 
 /** 執筆用の書体。書いていて気分が上がるものを選べるように */
 export const WRITING_FONTS = [
@@ -159,8 +159,8 @@ export default function Editor() {
       onMouseMove={() => quiet && setQuiet(false)}
     >
       <header className="ed-bar ed-top">
-        <button className="ed-btn" onClick={close}>
-          <Icon name="back" size={16} /> <span className="hide-sm">目次</span>
+        <button className="btn" onClick={close}>
+          目次
         </button>
         <select
           className="ed-select"
@@ -179,43 +179,41 @@ export default function Editor() {
         </select>
         <div className="ed-spacer" />
         <button
-          className={'ed-btn' + (sceneTracks.length ? ' has-music' : '')}
+          className="btn"
           onClick={() => {
             setShowMusic((v) => !v)
             setShowPrefs(false)
           }}
           aria-expanded={showMusic}
         >
-          <Icon name="music" size={16} />
-          <span className="hide-sm">{sceneTracks.length ? `この章の曲 ${sceneTracks.length}` : '曲'}</span>
+          曲
         </button>
         <button
-          className="ed-btn"
+          className="btn"
           onClick={() => {
             setShowPrefs((v) => !v)
             setShowMusic(false)
           }}
           aria-expanded={showPrefs}
         >
-          <Icon name="settings" size={16} /> <span className="hide-sm">表示</span>
+          表示
         </button>
         <button
-          className="ed-btn hide-sm"
-          aria-label="全画面"
+          className="btn hide-sm"
           onClick={() => {
             if (document.fullscreenElement) void document.exitFullscreen()
             else void document.documentElement.requestFullscreen?.().catch(() => toast('この端末では全画面にできません'))
           }}
         >
-          <Icon name="expand" size={16} />
+          全画面
         </button>
       </header>
 
       {showMusic && (
         <div className="ed-prefs ed-music" role="dialog" aria-label="この章の曲">
-          <span className="pref-head">この章の曲</span>
+          <span className="field-label">この章の曲</span>
           {sceneTracks.length ? (
-            <div className="chip-col">
+            <div className="seg col">
               {sceneTracks.map((t) => (
                 <TrackChip key={t.id} t={t} />
               ))}
@@ -223,8 +221,8 @@ export default function Editor() {
           ) : null}
           {work.music.length > 0 && (
             <>
-              <span className="pref-head">ほかの曲</span>
-              <div className="chip-col">
+              <span className="field-label">ほかの曲</span>
+              <div className="seg col">
                 {work.music
                   .filter((t) => !sceneTracks.includes(t))
                   .map((t) => (
@@ -238,9 +236,9 @@ export default function Editor() {
 
       {showPrefs && (
         <div className="ed-prefs" role="dialog" aria-label="表示の設定">
-          <div className="pref">
-            <span>組み方</span>
-            <div className="seg small">
+          <div className="field">
+            <span className="field-label">組み方</span>
+            <div className="seg">
               <button className={'seg-btn' + (!prefs.vertical ? ' on' : '')} onClick={() => setPrefs({ ...prefs, vertical: false })}>
                 横書き
               </button>
@@ -249,23 +247,19 @@ export default function Editor() {
               </button>
             </div>
           </div>
-          <div className="pref">
-            <span>書体</span>
-            <div className="font-tiles">
+          <div className="field">
+            <span className="field-label">書体</span>
+            <div className="seg">
               {WRITING_FONTS.map((f) => (
-                <button key={f.id} className={'font-tile' + (prefs.font === f.id ? ' on' : '')} style={{ fontFamily: f.family }} onClick={() => setPrefs({ ...prefs, font: f.id })}>
-                  <span className="ft-sample">永い夜</span>
-                  <span className="ft-label">
-                    {f.label}
-                    <small>{f.note}</small>
-                  </span>
+                <button key={f.id} className={'seg-btn' + (prefs.font === f.id ? ' on' : '')} style={{ fontFamily: f.family }} onClick={() => setPrefs({ ...prefs, font: f.id })}>
+                  {f.label}
                 </button>
               ))}
             </div>
           </div>
-          <div className="pref">
-            <span>紙の色</span>
-            <div className="seg small">
+          <div className="field">
+            <span className="field-label">紙の色</span>
+            <div className="seg">
               {(
                 [
                   ['paper', '白'],
@@ -279,12 +273,12 @@ export default function Editor() {
               ))}
             </div>
           </div>
-          <label className="pref">
-            <span>文字の大きさ {prefs.size}px</span>
+          <label className="field">
+            <span className="field-label">文字の大きさ {prefs.size}px</span>
             <input type="range" min={14} max={28} value={prefs.size} onChange={(e) => setPrefs({ ...prefs, size: +e.target.value })} />
           </label>
-          <label className="pref">
-            <span>行間 {prefs.lineHeight.toFixed(1)}</span>
+          <label className="field">
+            <span className="field-label">行間 {prefs.lineHeight.toFixed(1)}</span>
             <input type="range" min={1.5} max={2.6} step={0.1} value={prefs.lineHeight} onChange={(e) => setPrefs({ ...prefs, lineHeight: +e.target.value })} />
           </label>
         </div>
@@ -309,7 +303,6 @@ export default function Editor() {
           className="ed-body"
           value={ch.body}
           spellCheck={false}
-          placeholder="ここから書きはじめる"
           aria-label="本文"
           onChange={(e) => edit({ body: e.target.value })}
           onKeyDown={() => !quiet && setQuiet(true)}
@@ -317,19 +310,19 @@ export default function Editor() {
       </div>
 
       <footer className="ed-bar ed-bottom">
-        <button className="ed-btn" disabled={idx <= 0} onClick={() => idx > 0 && nav(`../write/${chapters![idx - 1].id}`, { replace: true })}>
-          ← 前の章
+        <button className="btn" disabled={idx <= 0} onClick={() => idx > 0 && nav(`../write/${chapters![idx - 1].id}`, { replace: true })}>
+          前の章
         </button>
-        <span className="ed-count">
-          {fmtNum(chars)} 字 ・ 原稿用紙 {manuscriptSheets(ch.body)} 枚
+        <span className="ed-count meta">
+          {fmtNum(chars)} 字　{manuscriptSheets(ch.body)} 枚
         </span>
-        <span className={'ed-save ' + save}>{save === 'saved' ? '保存済み' : save === 'saving' ? '保存中…' : '編集中'}</span>
+        <span className="meta">{save === 'saved' ? '保存済み' : save === 'saving' ? '保存中…' : '編集中'}</span>
         <button
-          className="ed-btn"
+          className="btn"
           disabled={!chapters || idx >= chapters.length - 1}
           onClick={() => chapters && idx < chapters.length - 1 && nav(`../write/${chapters[idx + 1].id}`, { replace: true })}
         >
-          次の章 →
+          次の章
         </button>
       </footer>
     </div>

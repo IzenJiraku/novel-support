@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { PALETTE, newCharacter, uid, type Character, type Relation, type RelationDir, type Work } from '../db'
 import { useWork } from '../workContext'
-import { Icon, Modal, confirmDialog, useFileURL } from '../ui'
+import { Modal, confirmDialog, useFileURL } from '../ui'
 import Profile from './Profile'
 
 const R = 38
@@ -235,27 +235,25 @@ export default function Cast() {
   return (
     <section className="sec">
       <header className="sec-head">
-        <h2 className="sec-title">
-          <span className="ja">相関図</span>
-        </h2>
+        <h2>相関図</h2>
       </header>
 
       <div className="cast-toolbar">
-        <button className="btn primary small" onClick={addCharacter}>
-          <Icon name="person" size={16} /> 人物を追加
+        <button className="btn primary" onClick={addCharacter}>
+          人物を追加
         </button>
-        <button className="btn ghost small" onClick={() => setRel('new')} disabled={work.characters.length < 2}>
-          <Icon name="edge" size={16} /> 関係を追加
+        <button className="btn" onClick={() => setRel('new')} disabled={work.characters.length < 2}>
+          関係を追加
         </button>
         <span className="ed-spacer" />
-        <button className="icon-btn" onClick={() => zoomAt(svgRef.current!.clientWidth / 2, svgRef.current!.clientHeight / 2, view.k * 1.2)} aria-label="拡大">
-          <Icon name="zoomin" />
+        <button className="btn" onClick={() => zoomAt(svgRef.current!.clientWidth / 2, svgRef.current!.clientHeight / 2, view.k * 1.2)}>
+          拡大
         </button>
-        <button className="icon-btn" onClick={() => zoomAt(svgRef.current!.clientWidth / 2, svgRef.current!.clientHeight / 2, view.k / 1.2)} aria-label="縮小">
-          <Icon name="zoomout" />
+        <button className="btn" onClick={() => zoomAt(svgRef.current!.clientWidth / 2, svgRef.current!.clientHeight / 2, view.k / 1.2)}>
+          縮小
         </button>
-        <button className="icon-btn" onClick={fit} aria-label="全体を表示">
-          <Icon name="fit" />
+        <button className="btn" onClick={fit}>
+          全体
         </button>
       </div>
 
@@ -266,42 +264,27 @@ export default function Cast() {
       </div>
 
       {work.characters.length > 0 && (
-        <>
-          <h3 className="sub-head">登場人物一覧</h3>
-          <ul className="cast-list">
-            {work.characters.map((c) => (
-              <li key={c.id}>
-                <button
-                  className="cast-card"
-                  onClick={() => {
-                    setOpenEdit(false)
-                    setOpenId(c.id)
-                  }}
-                >
-                  <Avatar c={c} size={48} />
-                  <span className="cast-card-text">
-                    <strong>{c.name || '名前未設定'}</strong>
-                    <small>{[c.role, c.age && `${c.age}歳`, c.occupation].filter(Boolean).join(' ・ ') || 'プロフィール未記入'}</small>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </>
+        <ul className="cast-list">
+          {work.characters.map((c) => (
+            <li key={c.id}>
+              <button
+                className="cast-item"
+                onClick={() => {
+                  setOpenEdit(false)
+                  setOpenId(c.id)
+                }}
+              >
+                <span>{c.name || '名前未設定'}</span>
+                <span className="meta">{[c.role, c.age && `${c.age}歳`, c.occupation].filter(Boolean).join(' ・ ')}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
 
       {open && <Profile key={open.id} c={open} startEditing={openEdit} onClose={() => setOpenId(null)} />}
       {rel && <RelationDialog initial={rel === 'new' ? null : rel} onClose={() => setRel(null)} />}
     </section>
-  )
-}
-
-export function Avatar({ c, size }: { c: Character; size: number }) {
-  const url = useFileURL(c.photoId)
-  return (
-    <span className="avatar" style={{ width: size, height: size, background: c.color }}>
-      {url ? <img src={url} alt="" /> : <span style={{ fontSize: size * 0.42 }}>{(c.name || '？').slice(0, 1)}</span>}
-    </span>
   )
 }
 
@@ -326,9 +309,6 @@ function Diagram({ work, view }: { work: Work; view: View }) {
             <path d="M0 0L10 5L0 10z" fill={col} />
           </marker>
         ))}
-        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-          <path d="M40 0H0V40" fill="none" className="grid-line" />
-        </pattern>
       </defs>
       
       <g transform={`translate(${view.tx} ${view.ty}) scale(${view.k})`}>
@@ -368,14 +348,14 @@ function Diagram({ work, view }: { work: Work; view: View }) {
                 d={`M${sx} ${sy} Q${cx} ${cy} ${ex} ${ey}`}
                 fill="none"
                 stroke={r.color}
-                strokeWidth={2}
+                strokeWidth={1}
                 markerEnd={r.dir !== 'none' ? marker : undefined}
                 markerStart={r.dir === 'both' ? marker : undefined}
               />
               <path d={`M${sx} ${sy} Q${cx} ${cy} ${ex} ${ey}`} fill="none" stroke="transparent" strokeWidth={16} />
               {r.label && (
                 <g transform={`translate(${mx} ${my})`} className="edge-label">
-                  <rect x={-w / 2} y={-13} width={w} height={26} rx={0} stroke={r.color} />
+                  <rect x={-w / 2} y={-13} width={w} height={26} />
                   <text textAnchor="middle" dy="0.35em" fill={r.color}>
                     {r.label}
                   </text>
@@ -396,7 +376,6 @@ function Node({ c }: { c: Character }) {
   const url = useFileURL(c.photoId)
   return (
     <g className="node" data-node={c.id} transform={`translate(${c.x} ${c.y})`} tabIndex={0} role="button" aria-label={`${c.name || '名前未設定'}のプロフィール`}>
-      <circle r={R + 3} fill="none" stroke={c.color} strokeWidth={2} className="node-ring" />
       <clipPath id={'cp-' + c.id}>
         <circle r={R - 2} />
       </clipPath>
@@ -446,7 +425,7 @@ function RelationDialog({ initial, onClose }: { initial: Relation | null; onClos
         <>
           {initial && (
             <button
-              className="btn ghost danger-text"
+              className="btn danger"
               onClick={async () => {
                 if (!(await confirmDialog(`${name(r.from)} と ${name(r.to)} の関係「${r.label}」を削除します。`))) return
                 update((w) => {
@@ -459,9 +438,6 @@ function RelationDialog({ initial, onClose }: { initial: Relation | null; onClos
             </button>
           )}
           <span className="ed-spacer" />
-          <button className="btn ghost" onClick={onClose}>
-            やめる
-          </button>
           <button className="btn primary" onClick={save} disabled={!r.from || !r.to || r.from === r.to}>
             保存
           </button>
@@ -491,16 +467,16 @@ function RelationDialog({ initial, onClose }: { initial: Relation | null; onClos
         </label>
         <label className="field rel-wide">
           <span className="field-label">関係・気持ち</span>
-          <input value={r.label} autoFocus placeholder="例：幼なじみ、片思い、師匠、因縁" onChange={(e) => setR({ ...r, label: e.target.value })} />
+          <input value={r.label} autoFocus onChange={(e) => setR({ ...r, label: e.target.value })} />
         </label>
         <div className="field rel-wide">
           <span className="field-label">矢印</span>
-          <div className="seg small">
+          <div className="seg">
             {(
               [
-                ['one', '→ 一方向'],
-                ['both', '↔ 双方向'],
-                ['none', '― 矢印なし'],
+                ['one', '一方向'],
+                ['both', '双方向'],
+                ['none', 'なし'],
               ] as [RelationDir, string][]
             ).map(([k, l]) => (
               <button key={k} className={'seg-btn' + (r.dir === k ? ' on' : '')} onClick={() => setR({ ...r, dir: k })}>
@@ -517,7 +493,7 @@ function RelationDialog({ initial, onClose }: { initial: Relation | null; onClos
             ))}
           </div>
         </div>
-        {r.from === r.to && <p className="field-hint danger-text">別々の人物を選んでください。</p>}
+        {r.from === r.to && <p className="meta danger">別々の人物を選んでください。</p>}
       </div>
     </Modal>
   )
