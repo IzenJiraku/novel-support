@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { db } from './db'
 
@@ -132,6 +132,36 @@ export function toast(msg: string) {
   toastEl.classList.add('show')
   window.clearTimeout(toastTimer)
   toastTimer = window.setTimeout(() => toastEl?.classList.remove('show'), 2400)
+}
+
+/* ───────── たまにしか使わない操作をしまっておくメニュー ───────── */
+
+export function Menu({ label = 'その他', right, children }: { label?: string; right?: boolean; children: ReactNode }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLSpanElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const out = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && setOpen(false)
+    const key = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
+    document.addEventListener('pointerdown', out)
+    document.addEventListener('keydown', key)
+    return () => {
+      document.removeEventListener('pointerdown', out)
+      document.removeEventListener('keydown', key)
+    }
+  }, [open])
+  return (
+    <span className={'menu' + (right ? ' right' : '')} ref={ref}>
+      <button className={'seg-btn' + (open ? ' on' : '')} onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-haspopup="menu">
+        {label}
+      </button>
+      {open && (
+        <span className="menu-list" role="menu" onClick={() => setOpen(false)}>
+          {children}
+        </span>
+      )}
+    </span>
+  )
 }
 
 /* ───────── 行の操作（並べ替えと削除）。文字だけで、行に触れたときに現れる ───────── */

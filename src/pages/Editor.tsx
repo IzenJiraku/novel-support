@@ -198,15 +198,6 @@ export default function Editor() {
         >
           表示
         </button>
-        <button
-          className="btn hide-sm"
-          onClick={() => {
-            if (document.fullscreenElement) void document.exitFullscreen()
-            else void document.documentElement.requestFullscreen?.().catch(() => toast('この端末では全画面にできません'))
-          }}
-        >
-          全画面
-        </button>
       </header>
 
       {showMusic && (
@@ -281,6 +272,15 @@ export default function Editor() {
             <span className="field-label">行間 {prefs.lineHeight.toFixed(1)}</span>
             <input type="range" min={1.5} max={2.6} step={0.1} value={prefs.lineHeight} onChange={(e) => setPrefs({ ...prefs, lineHeight: +e.target.value })} />
           </label>
+          <button
+            className="btn hide-sm"
+            onClick={() => {
+              if (document.fullscreenElement) void document.exitFullscreen()
+              else void document.documentElement.requestFullscreen?.().catch(() => toast('この端末では全画面にできません'))
+            }}
+          >
+            全画面
+          </button>
         </div>
       )}
 

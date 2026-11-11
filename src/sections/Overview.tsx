@@ -3,7 +3,7 @@ import { STATUSES, deleteWork, downloadBlob, exportWorkJSON, exportWorkText, saf
 import { useWork } from '../workContext'
 import { AreaField, TextField } from '../components/Field'
 import CoverThumb from '../components/CoverThumb'
-import { confirmDialog, toast } from '../ui'
+import { Menu, confirmDialog, toast } from '../ui'
 
 export default function Overview() {
   const { work, update, flush } = useWork()
@@ -24,6 +24,29 @@ export default function Overview() {
     <section className="sec">
       <header className="sec-head">
         <h2>概要</h2>
+        <Menu right>
+          <button
+            className="btn" role="menuitem"
+            onClick={async () => {
+              await flush()
+              downloadBlob(safeName(work.title) + '.txt', await exportWorkText(work.id))
+            }}
+          >
+            テキストで書き出す
+          </button>
+          <button
+            className="btn" role="menuitem"
+            onClick={async () => {
+              await flush()
+              downloadBlob(safeName(work.title) + '.shosai.json', await exportWorkJSON(work.id), 'application/json')
+            }}
+          >
+            バックアップを保存
+          </button>
+          <button className="btn danger" role="menuitem" onClick={onDelete}>
+            作品を削除
+          </button>
+        </Menu>
       </header>
 
       <div className="ov-grid">
@@ -67,30 +90,6 @@ export default function Overview() {
           <AreaField label="メモ" value={work.memo} onChange={set('memo')} />
         </div>
       </div>
-
-      <footer className="ov-actions">
-        <button
-          className="btn"
-          onClick={async () => {
-            await flush()
-            downloadBlob(safeName(work.title) + '.txt', await exportWorkText(work.id))
-          }}
-        >
-          テキストで書き出す
-        </button>
-        <button
-          className="btn"
-          onClick={async () => {
-            await flush()
-            downloadBlob(safeName(work.title) + '.shosai.json', await exportWorkJSON(work.id), 'application/json')
-          }}
-        >
-          バックアップ
-        </button>
-        <button className="btn danger" onClick={onDelete}>
-          削除
-        </button>
-      </footer>
     </section>
   )
 }

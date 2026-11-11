@@ -2,7 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createWork, db, importWorkJSON } from '../db'
-import { toast } from '../ui'
+import { Menu, toast } from '../ui'
 import CoverThumb from '../components/CoverThumb'
 
 export default function Library() {
@@ -36,9 +36,11 @@ export default function Library() {
           <a className="btn" href="#/pieces">
             断片
           </a>
-          <button className="btn" onClick={() => fileRef.current?.click()}>
-            バックアップを読み込む
-          </button>
+          <Menu right>
+            <button className="btn" role="menuitem" onClick={() => fileRef.current?.click()}>
+              バックアップを読み込む
+            </button>
+          </Menu>
           <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => onImport(e.target.files?.[0])} />
         </div>
       </header>

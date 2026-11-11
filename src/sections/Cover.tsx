@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { defaultCover, downloadBlob, prepareImage, removeFile, safeName, saveFile, uid, type CoverSettings, type TextLayer } from '../db'
 import { useWork } from '../workContext'
-import { FileImage, Modal, fileURL, toast } from '../ui'
+import { FileImage, Menu, Modal, fileURL, toast } from '../ui'
 import { COVER_H, COVER_W, FONTS, PRESETS, ensureLayer, renderCover } from './coverRender'
 
 type Target = 'bg' | 'title' | 'copy' | 'author'
@@ -110,6 +110,11 @@ export default function Cover() {
     <section className="sec">
       <header className="sec-head">
         <h2>表紙</h2>
+        <Menu right>
+          <button className="btn" role="menuitem" onClick={downloadPng}>
+            画像を書き出す
+          </button>
+        </Menu>
       </header>
 
       <div className="cover-grid">
@@ -142,9 +147,6 @@ export default function Cover() {
           <div className="row">
             <button className="btn primary" onClick={saveAsCover} disabled={saving}>
               {saving ? '保存しています…' : '表紙として保存'}
-            </button>
-            <button className="btn" onClick={downloadPng}>
-              画像を書き出す
             </button>
           </div>
         </div>
