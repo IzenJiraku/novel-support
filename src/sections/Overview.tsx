@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom'
-import { STATUSES, deleteWork, downloadBlob, exportWorkJSON, exportWorkText, safeName, type WorkStatus } from '../db'
+import { STATUSES, deleteWork, downloadBlob, restoreWork, exportWorkJSON, exportWorkText, safeName, type WorkStatus } from '../db'
 import { useWork } from '../workContext'
 import { AreaField, TextField } from '../components/Field'
 import CoverThumb from '../components/CoverThumb'
-import { Icon, confirmDialog, toast } from '../ui'
+import { Menu, confirmDialog, toast } from '../ui'
 
 export default function Overview() {
   const { work, update, flush } = useWork()
@@ -14,25 +14,47 @@ export default function Overview() {
     })
 
   const onDelete = async () => {
-    if (!(await confirmDialog(`「${work.title || '無題'}」を削除します。本文・表紙・画像・音楽もすべて消え、元に戻せません。`))) return
-    await deleteWork(work.id)
-    toast('作品を削除しました')
+    if (!(await confirmDialog(`「${work.title || '無題'}」を削除します。本文・表紙・画像・音楽もすべて消えます。`))) return
+    await flush()
+    const kept = await deleteWork(work.id)
     nav('/')
+    toast(`「${work.title || '無題'}」を削除しました`, { label: '元に戻す', run: () => restoreWork(kept) })
   }
 
   return (
     <section className="sec">
       <header className="sec-head">
-        <h2 className="sec-title">
-          <span className="ja">概要</span>
-        </h2>
+        <h2>概要</h2>
+        <Menu right>
+          <button
+            className="btn" role="menuitem"
+            onClick={async () => {
+              await flush()
+              downloadBlob(safeName(work.title) + '.txt', await exportWorkText(work.id))
+            }}
+          >
+            テキストで書き出す
+          </button>
+          <button
+            className="btn" role="menuitem"
+            onClick={async () => {
+              await flush()
+              downloadBlob(safeName(work.title) + '.shosai.json', await exportWorkJSON(work.id), 'application/json')
+            }}
+          >
+            バックアップを保存
+          </button>
+          <button className="btn danger" role="menuitem" onClick={onDelete}>
+            作品を削除
+          </button>
+        </Menu>
       </header>
 
       <div className="ov-grid">
         <div className="ov-cover">
           <CoverThumb work={work} />
-          <a className="btn ghost small" href={`#/w/${work.id}/cover`}>
-            <Icon name="image" size={16} /> {work.coverImageId ? '表紙を編集' : '表紙をつくる'}
+          <a className="btn" href={`#/w/${work.id}/cover`}>
+            {work.coverImageId ? '表紙を編集' : '表紙をつくる'}
           </a>
         </div>
 
@@ -58,41 +80,12 @@ export default function Overview() {
               </select>
             </label>
           </div>
-          <TextField
-            label="ひとことで言うと"
-            value={work.logline}
-            onChange={set('logline')}
-           
-          />
-          <AreaField label="あらすじ" count rows={8} value={work.synopsis} onChange={set('synopsis')} />
-          <AreaField label="テーマ・書きたいこと" rows={3} value={work.theme} onChange={set('theme')} />
-          <AreaField label="メモ" rows={3} value={work.memo} onChange={set('memo')} />
+          <AreaField label="ひとことで言うと" value={work.logline} onChange={set('logline')} />
+          <AreaField label="あらすじ" count value={work.synopsis} onChange={set('synopsis')} />
+          <AreaField label="テーマ・書きたいこと" value={work.theme} onChange={set('theme')} />
+          <AreaField label="メモ" value={work.memo} onChange={set('memo')} />
         </div>
       </div>
-
-      <footer className="ov-actions">
-        <button
-          className="text-btn"
-          onClick={async () => {
-            await flush()
-            downloadBlob(safeName(work.title) + '.txt', await exportWorkText(work.id))
-          }}
-        >
-          <Icon name="download" size={18} /> テキストで書き出す
-        </button>
-        <button
-          className="text-btn"
-          onClick={async () => {
-            await flush()
-            downloadBlob(safeName(work.title) + '.shosai.json', await exportWorkJSON(work.id), 'application/json')
-          }}
-        >
-          <Icon name="download" size={18} /> バックアップ
-        </button>
-        <button className="text-btn danger-text" onClick={onDelete}>
-          <Icon name="trash" size={18} /> 削除
-        </button>
-      </footer>
     </section>
   )
 }

@@ -1,10 +1,27 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { PALETTE, newCharacter, uid, type Character, type Relation, type RelationDir, type Work } from '../db'
 import { useWork } from '../workContext'
-import { Icon, Modal, confirmDialog, useFileURL } from '../ui'
+import { Modal, confirmDialog, useFileURL } from '../ui'
 import Profile from './Profile'
 
-const R = 38
+const PHOTO_R = 30
+const PHOTO_CY = 58
+
+/** 人物の札の大きさ（中心からの幅と上下）。名前をそのまま出すので、字数で幅が決まる */
+function nodeBox(c: Pick<Character, 'name' | 'role' | 'photoId'>) {
+  const wide = (s: string) => [...s].reduce((n, ch) => n + (/[ -~\s]/.test(ch) ? 12 : 23), 0)
+  const hw = Math.max(48, wide(c.name || '名前未設定') / 2 + 16, wide(c.role) * 0.62 / 2 + 16)
+  const half = c.role ? 34 : 24
+  return { hw, top: c.photoId ? -(PHOTO_CY + PHOTO_R + 6) : -half, bottom: half }
+}
+
+/** 札の中心から (ux, uy) の向きへ進んで、札の外へ出るまでの距離 */
+function edgeOut(c: Pick<Character, 'name' | 'role' | 'photoId'>, ux: number, uy: number, gap: number) {
+  const b = nodeBox(c)
+  const tx = ux === 0 ? Infinity : (b.hw + gap) / Math.abs(ux)
+  const ty = uy === 0 ? Infinity : ((uy > 0 ? b.bottom : -b.top) + gap) / Math.abs(uy)
+  return Math.min(tx, ty)
+}
 
 interface View {
   tx: number
@@ -32,7 +49,7 @@ export default function Cast() {
     }
     const xs = cs.map((c) => c.x)
     const ys = cs.map((c) => c.y)
-    const pad = 90
+    const pad = 130
     const minX = Math.min(...xs) - pad
     const maxX = Math.max(...xs) + pad
     const minY = Math.min(...ys) - pad
@@ -235,27 +252,25 @@ export default function Cast() {
   return (
     <section className="sec">
       <header className="sec-head">
-        <h2 className="sec-title">
-          <span className="ja">相関図</span>
-        </h2>
+        <h2>相関図</h2>
       </header>
 
       <div className="cast-toolbar">
-        <button className="btn primary small" onClick={addCharacter}>
-          <Icon name="person" size={16} /> 人物を追加
+        <button className="btn primary" onClick={addCharacter}>
+          人物を追加
         </button>
-        <button className="btn ghost small" onClick={() => setRel('new')} disabled={work.characters.length < 2}>
-          <Icon name="edge" size={16} /> 関係を追加
+        <button className="btn" onClick={() => setRel('new')} disabled={work.characters.length < 2}>
+          関係を追加
         </button>
         <span className="ed-spacer" />
-        <button className="icon-btn" onClick={() => zoomAt(svgRef.current!.clientWidth / 2, svgRef.current!.clientHeight / 2, view.k * 1.2)} aria-label="拡大">
-          <Icon name="zoomin" />
+        <button className="btn hide-touch" onClick={() => zoomAt(svgRef.current!.clientWidth / 2, svgRef.current!.clientHeight / 2, view.k * 1.2)}>
+          拡大
         </button>
-        <button className="icon-btn" onClick={() => zoomAt(svgRef.current!.clientWidth / 2, svgRef.current!.clientHeight / 2, view.k / 1.2)} aria-label="縮小">
-          <Icon name="zoomout" />
+        <button className="btn hide-touch" onClick={() => zoomAt(svgRef.current!.clientWidth / 2, svgRef.current!.clientHeight / 2, view.k / 1.2)}>
+          縮小
         </button>
-        <button className="icon-btn" onClick={fit} aria-label="全体を表示">
-          <Icon name="fit" />
+        <button className="btn" onClick={fit}>
+          全体
         </button>
       </div>
 
@@ -266,42 +281,27 @@ export default function Cast() {
       </div>
 
       {work.characters.length > 0 && (
-        <>
-          <h3 className="sub-head">登場人物一覧</h3>
-          <ul className="cast-list">
-            {work.characters.map((c) => (
-              <li key={c.id}>
-                <button
-                  className="cast-card"
-                  onClick={() => {
-                    setOpenEdit(false)
-                    setOpenId(c.id)
-                  }}
-                >
-                  <Avatar c={c} size={48} />
-                  <span className="cast-card-text">
-                    <strong>{c.name || '名前未設定'}</strong>
-                    <small>{[c.role, c.age && `${c.age}歳`, c.occupation].filter(Boolean).join(' ・ ') || 'プロフィール未記入'}</small>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </>
+        <ul className="cast-list">
+          {work.characters.map((c) => (
+            <li key={c.id}>
+              <button
+                className="cast-item"
+                onClick={() => {
+                  setOpenEdit(false)
+                  setOpenId(c.id)
+                }}
+              >
+                <span>{c.name || '名前未設定'}</span>
+                <span className="meta">{[c.role, c.age && `${c.age}歳`, c.occupation].filter(Boolean).join(' ・ ')}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
 
       {open && <Profile key={open.id} c={open} startEditing={openEdit} onClose={() => setOpenId(null)} />}
       {rel && <RelationDialog initial={rel === 'new' ? null : rel} onClose={() => setRel(null)} />}
     </section>
-  )
-}
-
-export function Avatar({ c, size }: { c: Character; size: number }) {
-  const url = useFileURL(c.photoId)
-  return (
-    <span className="avatar" style={{ width: size, height: size, background: c.color }}>
-      {url ? <img src={url} alt="" /> : <span style={{ fontSize: size * 0.42 }}>{(c.name || '？').slice(0, 1)}</span>}
-    </span>
   )
 }
 
@@ -318,6 +318,9 @@ function Diagram({ work, view }: { work: Work; view: View }) {
     pairCount.set(key, (pairCount.get(key) ?? 0) + 1)
   }
 
+  // 線をすべて引いてから札を重ねる（札の上を別の線が横切らないように）
+  const labels: ReactNode[] = []
+
   return (
     <>
       <defs>
@@ -326,9 +329,6 @@ function Diagram({ work, view }: { work: Work; view: View }) {
             <path d="M0 0L10 5L0 10z" fill={col} />
           </marker>
         ))}
-        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-          <path d="M40 0H0V40" fill="none" className="grid-line" />
-        </pattern>
       </defs>
       
       <g transform={`translate(${view.tx} ${view.ty}) scale(${view.k})`}>
@@ -354,36 +354,41 @@ function Diagram({ work, view }: { work: Work; view: View }) {
           }
           const [ux, uy] = unit(cx - a.x, cy - a.y)
           const [vx, vy] = unit(cx - b.x, cy - b.y)
-          const sx = a.x + ux * (R + 4)
-          const sy = a.y + uy * (R + 4)
-          const ex = b.x + vx * (R + 6)
-          const ey = b.y + vy * (R + 6)
+          const da = edgeOut(a, ux, uy, 6)
+          const db = edgeOut(b, vx, vy, 8)
+          const sx = a.x + ux * da
+          const sy = a.y + uy * da
+          const ex = b.x + vx * db
+          const ey = b.y + vy * db
           const mx = 0.25 * sx + 0.5 * cx + 0.25 * ex
           const my = 0.25 * sy + 0.5 * cy + 0.25 * ey
           const marker = `url(#arr-${r.color.slice(1)})`
-          const w = Math.max(40, [...r.label].length * 14 + 18)
-          return (
+          const w = Math.max(44, [...r.label].length * 16 + 20)
+          const path = (
             <g key={r.id} className="edge" data-edge={r.id}>
               <path
                 d={`M${sx} ${sy} Q${cx} ${cy} ${ex} ${ey}`}
                 fill="none"
                 stroke={r.color}
-                strokeWidth={2}
+                strokeWidth={1}
                 markerEnd={r.dir !== 'none' ? marker : undefined}
                 markerStart={r.dir === 'both' ? marker : undefined}
               />
               <path d={`M${sx} ${sy} Q${cx} ${cy} ${ex} ${ey}`} fill="none" stroke="transparent" strokeWidth={16} />
-              {r.label && (
-                <g transform={`translate(${mx} ${my})`} className="edge-label">
-                  <rect x={-w / 2} y={-13} width={w} height={26} rx={0} stroke={r.color} />
-                  <text textAnchor="middle" dy="0.35em" fill={r.color}>
-                    {r.label}
-                  </text>
-                </g>
-              )}
             </g>
           )
+          if (r.label)
+            labels.push(
+              <g key={r.id} transform={`translate(${mx} ${my})`} className="edge edge-label" data-edge={r.id}>
+                <rect x={-w / 2} y={-13} width={w} height={26} />
+                <text textAnchor="middle" dy="0.35em" fill={r.color}>
+                  {r.label}
+                </text>
+              </g>,
+            )
+          return path
         })}
+        {labels}
         {work.characters.map((c) => (
           <Node key={c.id} c={c} />
         ))}
@@ -394,28 +399,30 @@ function Diagram({ work, view }: { work: Work; view: View }) {
 
 function Node({ c }: { c: Character }) {
   const url = useFileURL(c.photoId)
+  const b = nodeBox(c)
+  const nameY = c.role ? -8 : 0
   return (
     <g className="node" data-node={c.id} transform={`translate(${c.x} ${c.y})`} tabIndex={0} role="button" aria-label={`${c.name || '名前未設定'}のプロフィール`}>
-      <circle r={R + 3} fill="none" stroke={c.color} strokeWidth={2} className="node-ring" />
-      <clipPath id={'cp-' + c.id}>
-        <circle r={R - 2} />
-      </clipPath>
-      <circle r={R - 2} fill={c.color} />
-      {url ? (
-        <image href={url} x={-(R - 2)} y={-(R - 2)} width={(R - 2) * 2} height={(R - 2) * 2} clipPath={`url(#cp-${c.id})`} preserveAspectRatio="xMidYMid slice" />
-      ) : (
-        <text className="node-initial" textAnchor="middle" dy="0.36em">
-          {(c.name || '？').slice(0, 1)}
-        </text>
+      <rect className="node-hit" x={-b.hw} y={b.top} width={b.hw * 2} height={b.bottom - b.top} />
+      {c.photoId && (
+        <>
+          <clipPath id={'cp-' + c.id}>
+            <circle cy={-PHOTO_CY} r={PHOTO_R} />
+          </clipPath>
+          {url && (
+            <image href={url} x={-PHOTO_R} y={-PHOTO_CY - PHOTO_R} width={PHOTO_R * 2} height={PHOTO_R * 2} clipPath={`url(#cp-${c.id})`} preserveAspectRatio="xMidYMid slice" />
+          )}
+        </>
       )}
-      <text className="node-name" textAnchor="middle" y={R + 22}>
+      <text className="node-name" textAnchor="middle" y={nameY} dy="0.35em">
         {c.name || '名前未設定'}
       </text>
       {c.role && (
-        <text className="node-role" textAnchor="middle" y={R + 40}>
+        <text className="node-role" textAnchor="middle" y={16} dy="0.35em">
           {c.role}
         </text>
       )}
+      <line x1={-b.hw + 10} x2={b.hw - 10} y1={b.bottom - 4} y2={b.bottom - 4} stroke={c.color} strokeWidth={1.5} />
     </g>
   )
 }
@@ -446,7 +453,7 @@ function RelationDialog({ initial, onClose }: { initial: Relation | null; onClos
         <>
           {initial && (
             <button
-              className="btn ghost danger-text"
+              className="btn danger"
               onClick={async () => {
                 if (!(await confirmDialog(`${name(r.from)} と ${name(r.to)} の関係「${r.label}」を削除します。`))) return
                 update((w) => {
@@ -459,9 +466,6 @@ function RelationDialog({ initial, onClose }: { initial: Relation | null; onClos
             </button>
           )}
           <span className="ed-spacer" />
-          <button className="btn ghost" onClick={onClose}>
-            やめる
-          </button>
           <button className="btn primary" onClick={save} disabled={!r.from || !r.to || r.from === r.to}>
             保存
           </button>
@@ -491,16 +495,16 @@ function RelationDialog({ initial, onClose }: { initial: Relation | null; onClos
         </label>
         <label className="field rel-wide">
           <span className="field-label">関係・気持ち</span>
-          <input value={r.label} autoFocus placeholder="例：幼なじみ、片思い、師匠、因縁" onChange={(e) => setR({ ...r, label: e.target.value })} />
+          <input value={r.label} autoFocus onChange={(e) => setR({ ...r, label: e.target.value })} />
         </label>
         <div className="field rel-wide">
           <span className="field-label">矢印</span>
-          <div className="seg small">
+          <div className="seg">
             {(
               [
-                ['one', '→ 一方向'],
-                ['both', '↔ 双方向'],
-                ['none', '― 矢印なし'],
+                ['one', '一方向'],
+                ['both', '双方向'],
+                ['none', 'なし'],
               ] as [RelationDir, string][]
             ).map(([k, l]) => (
               <button key={k} className={'seg-btn' + (r.dir === k ? ' on' : '')} onClick={() => setR({ ...r, dir: k })}>
@@ -517,7 +521,7 @@ function RelationDialog({ initial, onClose }: { initial: Relation | null; onClos
             ))}
           </div>
         </div>
-        {r.from === r.to && <p className="field-hint danger-text">別々の人物を選んでください。</p>}
+        {r.from === r.to && <p className="meta danger">別々の人物を選んでください。</p>}
       </div>
     </Modal>
   )

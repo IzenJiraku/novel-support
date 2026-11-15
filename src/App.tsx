@@ -2,6 +2,7 @@ import { HashRouter, Navigate, Route, Routes, useParams } from 'react-router-dom
 import Library from './pages/Library'
 import WorkShell from './pages/WorkShell'
 import Editor from './pages/Editor'
+import Pieces from './pages/Pieces'
 import { WorkProvider } from './workContext'
 
 function WorkRoute() {
@@ -22,6 +23,7 @@ export default function App() {
     <HashRouter>
       <Routes>
         <Route path="/" element={<Library />} />
+        <Route path="/pieces" element={<Pieces />} />
         <Route path="/w/:id/*" element={<WorkRoute />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

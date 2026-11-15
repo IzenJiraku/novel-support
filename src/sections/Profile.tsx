@@ -3,23 +3,23 @@ import { PALETTE, prepareImage, removeFile, saveFile, trackLinks, uid, type Char
 import TrackChip from '../components/TrackChip'
 import { useWork } from '../workContext'
 import { AutoArea } from '../components/Field'
-import { Icon, Modal, confirmDialog, useFileURL } from '../ui'
+import { Modal, confirmDialog, useFileURL } from '../ui'
 
 type TextKey = Exclude<keyof Character, 'id' | 'x' | 'y' | 'history' | 'photoId' | 'color'>
 
 const ROLES = ['主人公', 'ヒロイン', 'ヒーロー', '相棒', '師匠', 'ライバル', '敵', '黒幕', '家族', '友人', '脇役']
 
 /** 履歴書の下段に並べる項目（見出しは履歴書の言い回しに寄せる） */
-const BLOCKS: { k: TextKey; label: string; sub?: string; ph: string }[] = [
-  { k: 'appearance', label: '外見の特徴', ph: '髪型、服装、体つき、目立つしるし' },
-  { k: 'personality', label: '性格', ph: '長所と短所、くせ' },
-  { k: 'speech', label: '口ぐせ・話し方', ph: '一人称、語尾、よく言うせりふ' },
-  { k: 'likes', label: '好きなもの', ph: '' },
-  { k: 'dislikes', label: '苦手なもの', ph: '' },
-  { k: 'skills', label: '特技・資格', ph: '' },
-  { k: 'motive', label: '志望の動機', sub: '物語での目的・望み', ph: 'この人物は何を求めて動くのか' },
-  { k: 'secret', label: '本人希望記入欄', sub: '秘密・本音', ph: '誰にも言っていないこと' },
-  { k: 'memo', label: '備考', ph: '作者用のメモ' },
+const BLOCKS: { k: TextKey; label: string; sub?: string }[] = [
+  { k: 'appearance', label: '外見の特徴' },
+  { k: 'personality', label: '性格' },
+  { k: 'speech', label: '口ぐせ・話し方' },
+  { k: 'likes', label: '好きなもの' },
+  { k: 'dislikes', label: '苦手なもの' },
+  { k: 'skills', label: '特技・資格' },
+  { k: 'motive', label: '志望の動機', sub: '物語での目的・望み' },
+  { k: 'secret', label: '本人希望記入欄', sub: '秘密・本音' },
+  { k: 'memo', label: '備考' },
 ]
 
 export default function Profile({ c, startEditing, onClose }: { c: Character; startEditing: boolean; onClose: () => void }) {
@@ -79,34 +79,24 @@ export default function Profile({ c, startEditing, onClose }: { c: Character; st
 
   const footer = editing ? (
     <>
-      <button className="btn ghost danger-text" onClick={onDelete}>
-        <Icon name="trash" size={16} /> 人物を削除
+      <button className="btn danger" onClick={onDelete}>
+        削除
       </button>
       <span className="ed-spacer" />
       <button className="btn primary" onClick={() => setEditing(false)}>
-        履歴書を見る
+        完了
       </button>
     </>
   ) : (
-    <>
-      <span className="ed-spacer" />
-      <button className="btn ghost" onClick={onClose}>
-        閉じる
-      </button>
-      <button className="btn primary" onClick={() => setEditing(true)}>
-        <Icon name="pen" size={16} /> 編集する
-      </button>
-    </>
+    <button className="btn primary" onClick={() => setEditing(true)}>
+      編集
+    </button>
   )
 
   return (
-    <Modal title={editing ? 'プロフィールを編集' : c.name || '名前未設定'} onClose={onClose} footer={footer} wide>
+    <Modal title="履歴書" onClose={onClose} footer={footer} wide>
       {!editing ? (
         <article className="rireki">
-          <header className="rk-head">
-            <h3>履 歴 書</h3>
-            <span>『{work.title || '無題'}』登場人物</span>
-          </header>
           <div className="rk-top">
             <table className="rk-table">
               <tbody>
@@ -147,9 +137,7 @@ export default function Profile({ c, startEditing, onClose }: { c: Character; st
                 </tr>
               </tbody>
             </table>
-            <div className="rk-photo" style={{ borderColor: c.color }}>
-              {photo ? <img src={photo} alt={`${c.name}の写真`} /> : <span>写真をはる位置</span>}
-            </div>
+            {photo && <img className="rk-photo" src={photo} alt={`${c.name}の写真`} />}
           </div>
 
           <table className="rk-history">
@@ -198,7 +186,7 @@ export default function Profile({ c, startEditing, onClose }: { c: Character; st
           {themeTracks.length > 0 && (
             <section className="rk-rel">
               <h4>テーマ曲</h4>
-              <div className="chip-row">
+              <div className="seg">
                 {themeTracks.map((t) => (
                   <TrackChip key={t.id} t={t} />
                 ))}
@@ -227,13 +215,14 @@ export default function Profile({ c, startEditing, onClose }: { c: Character; st
         <div className="pf-edit">
           <div className="pf-top">
             <div className="pf-photo">
-              <button className="rk-photo as-btn" style={{ borderColor: c.color }} onClick={() => fileRef.current?.click()} aria-label="写真を選ぶ">
-                {photo ? <img src={photo} alt="" /> : <span>写真を選ぶ</span>}
+              {photo && <img className="rk-photo" src={photo} alt="" />}
+              <button className="btn" onClick={() => fileRef.current?.click()}>
+                写真を選ぶ
               </button>
               <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => onPhoto(e.target.files?.[0])} />
               {c.photoId && (
                 <button
-                  className="btn ghost small"
+                  className="btn"
                   onClick={async () => {
                     const old = c.photoId
                     set({ photoId: null })
@@ -254,15 +243,15 @@ export default function Profile({ c, startEditing, onClose }: { c: Character; st
               <Txt label="ふりがな" v={c.kana} on={(v) => set({ kana: v })} />
               <label className="field">
                 <span className="field-label">物語での役割</span>
-                <input list="roles" value={c.role} onChange={(e) => set({ role: e.target.value })} placeholder="主人公、相棒など" />
+                <input list="roles" value={c.role} onChange={(e) => set({ role: e.target.value })} />
                 <datalist id="roles">
                   {ROLES.map((r) => (
                     <option key={r} value={r} />
                   ))}
                 </datalist>
               </label>
-              <Txt label="生年月日" v={c.birthday} on={(v) => set({ birthday: v })} ph="例：作中暦 312年 4月 9日" />
-              <Txt label="年齢" v={c.age} on={(v) => set({ age: v })} ph="数字だけでOK" />
+              <Txt label="生年月日" v={c.birthday} on={(v) => set({ birthday: v })} />
+              <Txt label="年齢" v={c.age} on={(v) => set({ age: v })} />
               <Txt label="性別" v={c.gender} on={(v) => set({ gender: v })} />
               <Txt label="身長・体格" v={c.height} on={(v) => set({ height: v })} />
               <Txt label="出身・住所" v={c.origin} on={(v) => set({ origin: v })} />
@@ -308,37 +297,36 @@ export default function Profile({ c, startEditing, onClose }: { c: Character; st
                     }
                   />
                   <button
-                    className="icon-btn"
-                    aria-label="この行を削除"
+                    className="btn"
                     onClick={() =>
                       setHist((hs) => {
                         hs.splice(i, 1)
                       })
                     }
                   >
-                    <Icon name="close" size={16} />
+                    削除
                   </button>
                 </div>
               ))}
               <button
-                className="btn ghost small"
+                className="btn"
                 onClick={() =>
                   setHist((hs) => {
                     hs.push({ id: uid(), year: '', month: '', text: '' })
                   })
                 }
               >
-                <Icon name="plus" size={16} /> 行を追加
+                行を追加
               </button>
             </div>
           </div>
 
           {work.music.length > 0 && (
             <div className="field">
-              <span className="field-label">テーマ曲（イメージ音楽から選ぶ）</span>
-              <div className="chip-row">
+              <span className="field-label">テーマ曲</span>
+              <div className="seg">
                 {work.music.map((t) => (
-                  <button key={t.id} className={'chip' + (trackLinks(t).characterIds.includes(c.id) ? ' on' : '')} onClick={() => toggleTrack(t.id)}>
+                  <button key={t.id} className={'seg-btn' + (trackLinks(t).characterIds.includes(c.id) ? ' on' : '')} onClick={() => toggleTrack(t.id)}>
                     {t.title || '無題の曲'}
                   </button>
                 ))}
@@ -353,7 +341,7 @@ export default function Profile({ c, startEditing, onClose }: { c: Character; st
                   {b.label}
                   {b.sub && <small>（{b.sub}）</small>}
                 </span>
-                <AutoArea value={c[b.k]} placeholder={b.ph} onChange={(e) => set({ [b.k]: e.target.value })} />
+                <AutoArea value={c[b.k]} onChange={(e) => set({ [b.k]: e.target.value })} />
               </label>
             ))}
           </div>
@@ -363,11 +351,11 @@ export default function Profile({ c, startEditing, onClose }: { c: Character; st
   )
 }
 
-function Txt({ label, v, on, ph, autoFocus }: { label: string; v: string; on: (v: string) => void; ph?: string; autoFocus?: boolean }) {
+function Txt({ label, v, on, autoFocus }: { label: string; v: string; on: (v: string) => void; autoFocus?: boolean }) {
   return (
     <label className="field">
       <span className="field-label">{label}</span>
-      <input value={v} placeholder={ph} autoFocus={autoFocus} onChange={(e) => on(e.target.value)} />
+      <input value={v} autoFocus={autoFocus} onChange={(e) => on(e.target.value)} />
     </label>
   )
 }

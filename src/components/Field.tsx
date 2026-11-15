@@ -23,7 +23,7 @@ export function TextField({ label, value, onChange, placeholder, hint, id, class
 }
 
 /** 内容に合わせて高さが伸びるテキストエリア */
-export function AreaField({ label, value, onChange, placeholder, hint, id, className, rows = 4, count }: Base & { rows?: number; count?: boolean }) {
+export function AreaField({ label, value, onChange, placeholder, hint, id, className, rows = 1, count }: Base & { rows?: number; count?: boolean }) {
   const ref = useRef<HTMLTextAreaElement>(null)
   useEffect(() => {
     const el = ref.current
@@ -51,5 +51,5 @@ export function AutoArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
     el.style.height = 'auto'
     el.style.height = el.scrollHeight + 2 + 'px'
   }, [props.value])
-  return <textarea ref={ref} rows={2} {...props} />
+  return <textarea ref={ref} rows={1} {...props} />
 }

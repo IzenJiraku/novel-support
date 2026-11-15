@@ -1,8 +1,15 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Link, useNavigate } from 'react-router-dom'
-import { countChars, db, recountWork, uid } from '../db'
+import { countChars, db, recountWork, takeSnapshot, uid } from '../db'
 import { useWork } from '../workContext'
-import { Icon, confirmDialog, fmtNum } from '../ui'
+import { LiveInput, RowTools, fmtNum, toast } from '../ui'
+
+const kanji = (n: number) => {
+  const d = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九']
+  if (n <= 0 || n > 99) return String(n)
+  const t = Math.floor(n / 10)
+  return (t > 1 ? d[t] : '') + (t > 0 ? '十' : '') + d[n % 10]
+}
 
 export default function Toc() {
   const { work, update } = useWork()
@@ -12,8 +19,15 @@ export default function Toc() {
   const add = async () => {
     const order = (chapters?.at(-1)?.order ?? 0) + 1
     const id = uid()
-    await db.chapters.add({ id, workId: work.id, title: `第${order}章`, order, body: '', memo: '', updatedAt: Date.now() })
+    await db.chapters.add({ id, workId: work.id, title: `第${kanji((chapters?.length ?? 0) + 1)}章`, order, body: '', memo: '', updatedAt: Date.now() })
     nav(`../write/${id}`)
+  }
+
+  const recount = async () => {
+    const n = await recountWork(work.id)
+    update((w) => {
+      w.charCount = n
+    })
   }
 
   const swap = async (i: number, d: number) => {
@@ -31,61 +45,46 @@ export default function Toc() {
   return (
     <section className="sec">
       <header className="sec-head">
-        <h2 className="sec-title">
-          <span className="ja">目次</span>
-        </h2>
+        <h2>目次</h2>
       </header>
 
-      <div className="toc-book">
-        <p className="toc-title">{work.title || '無題'}</p>
-        <ol className="toc">
+      <ol className="toc">
           {chapters?.map((c, i) => (
             <li key={c.id} className="toc-row">
-              <span className="toc-no">{String(i + 1).padStart(2, '0')}</span>
-              <input
+              <span className="meta">{String(i + 1).padStart(2, '0')}</span>
+              <LiveInput
                 className="toc-name"
                 value={c.title}
                 aria-label="章のタイトル"
-                onChange={(e) => db.chapters.update(c.id, { title: e.target.value, updatedAt: Date.now() })}
+                onCommit={(title) => void db.chapters.update(c.id, { title, updatedAt: Date.now() })}
               />
-              <span className="toc-leader" aria-hidden="true" />
-              <span className="toc-count">
-                {fmtNum(countChars(c.body))} 字
-              </span>
-              <span className="toc-tools">
-                <Link className="btn small primary" to={`../write/${c.id}`}>
-                  <Icon name="pen" size={16} /> 書く
-                </Link>
-                <button className="icon-btn" onClick={() => swap(i, -1)} disabled={i === 0} aria-label="上へ">
-                  <Icon name="up" size={18} />
-                </button>
-                <button className="icon-btn" onClick={() => swap(i, 1)} disabled={i === chapters.length - 1} aria-label="下へ">
-                  <Icon name="down" size={18} />
-                </button>
-                <button
-                  className="icon-btn"
-                  aria-label="章を削除"
-                  onClick={async () => {
-                    if (!(await confirmDialog(`「${c.title || '無題の章'}」を削除します。この章の本文（${fmtNum(countChars(c.body))} 字）も消えます。`))) return
-                    await db.chapters.delete(c.id)
-                    const n = await recountWork(work.id)
-                    update((w) => {
-                      w.charCount = n
-                    })
-                  }}
-                >
-                  <Icon name="trash" size={18} />
-                </button>
-              </span>
+              <span className="meta">{fmtNum(countChars(c.body))} 字</span>
+              <Link className="btn primary" to={`../write/${c.id}`}>
+                書く
+              </Link>
+              <RowTools
+                onUp={i > 0 ? () => swap(i, -1) : undefined}
+                onDown={i < chapters.length - 1 ? () => swap(i, 1) : undefined}
+                onDelete={async () => {
+                  // 確認は挟まず、すぐ元に戻せるようにする
+                  await takeSnapshot(c)
+                  await db.chapters.delete(c.id)
+                  await recount()
+                  toast(`「${c.title || '無題の章'}」を削除しました`, {
+                    label: '元に戻す',
+                    run: async () => {
+                      await db.chapters.put(c)
+                      await recount()
+                    },
+                  })
+                }}
+              />
             </li>
           ))}
-        </ol>
-        <div className="toc-foot">
-          <button className="btn ghost" onClick={add}>
-            <Icon name="plus" size={18} /> 章を追加
-          </button>
-        </div>
-      </div>
+      </ol>
+      <button className="btn" onClick={add}>
+        章を追加
+      </button>
     </section>
   )
 }

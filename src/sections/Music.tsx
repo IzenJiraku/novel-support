@@ -3,17 +3,8 @@ import { useRef, useState } from 'react'
 import { db, removeFile, saveFile, trackLinks, uid, type Chapter, type Track } from '../db'
 import { useWork } from '../workContext'
 import { AutoArea } from '../components/Field'
-import TrackChip, { toggleTrack, usePlaying } from '../components/TrackChip'
-import { Icon, confirmDialog, toast } from '../ui'
-
-function service(url: string) {
-  if (/youtu\.?be/.test(url)) return 'YouTube'
-  if (/spotify\.com/.test(url)) return 'Spotify'
-  if (/music\.apple\.com/.test(url)) return 'Apple Music'
-  if (/soundcloud\.com/.test(url)) return 'SoundCloud'
-  if (/nicovideo\.jp/.test(url)) return 'ニコニコ'
-  return 'Link'
-}
+import TrackChip from '../components/TrackChip'
+import { RowTools, confirmDialog, toast } from '../ui'
 
 type View = 'list' | 'cast' | 'scene'
 
@@ -44,9 +35,7 @@ export default function Music() {
   return (
     <section className="sec">
       <header className="sec-head">
-        <h2 className="sec-title">
-          <span className="ja">イメージ音楽</span>
-        </h2>
+        <h2>イメージ音楽</h2>
       </header>
 
       <form
@@ -59,13 +48,13 @@ export default function Music() {
         <input value={draft.title} placeholder="曲名" aria-label="曲名" onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
         <input value={draft.artist} placeholder="アーティスト" aria-label="アーティスト" onChange={(e) => setDraft({ ...draft, artist: e.target.value })} />
         <input value={draft.url} placeholder="URL" aria-label="URL" inputMode="url" onChange={(e) => setDraft({ ...draft, url: e.target.value })} />
-        <button className="btn primary small" type="submit">
+        <button className="btn primary" type="submit">
           追加
         </button>
       </form>
 
       {work.music.length > 0 && (
-        <div className="seg small music-view" role="group" aria-label="表示">
+        <div className="seg music-view" role="group" aria-label="表示">
           {(
             [
               ['list', 'すべて'],
@@ -117,10 +106,10 @@ function Group({ title, sub, tracks }: { title: string; sub?: string; tracks: Tr
     <section className="music-group">
       <h3>
         {title}
-        {sub && <small>{sub}</small>}
+        {sub && <small className="meta">{sub}</small>}
       </h3>
       {tracks.length ? (
-        <div className="chip-row">
+        <div className="seg">
           {tracks.map((t) => (
             <TrackChip key={t.id} t={t} />
           ))}
@@ -134,7 +123,6 @@ function TrackRow({ t, i, last, chapters }: { t: Track; i: number; last: boolean
   const { work, update } = useWork()
   const fileRef = useRef<HTMLInputElement>(null)
   const [linking, setLinking] = useState(false)
-  const playing = usePlaying() === t.id
   const links = trackLinks(t)
 
   const set = (patch: Partial<Track>) =>
@@ -175,49 +163,42 @@ function TrackRow({ t, i, last, chapters }: { t: Track; i: number; last: boolean
 
   return (
     <li className="track">
-      <button
-        className={'track-play-btn' + (playing ? ' playing' : '')}
-        onClick={() => (t.fileId ? toggleTrack(t) : t.url && window.open(t.url, '_blank', 'noopener'))}
-        disabled={!t.fileId && !t.url}
-        aria-label={playing ? '止める' : t.fileId ? '再生' : '外部サービスで開く'}
-      >
-        {playing ? '❚❚' : t.fileId ? '▶' : t.url ? '↗' : String(i + 1).padStart(2, '0')}
-      </button>
+      <span className="meta">{String(i + 1).padStart(2, '0')}</span>
       <div className="track-main">
         <div className="track-head">
-          <input className="track-title" value={t.title} placeholder="曲名" aria-label="曲名" onChange={(e) => set({ title: e.target.value })} />
+          <input className="title-input" value={t.title} placeholder="曲名" aria-label="曲名" onChange={(e) => set({ title: e.target.value })} />
           <input className="track-artist" value={t.artist} placeholder="アーティスト" aria-label="アーティスト" onChange={(e) => set({ artist: e.target.value })} />
         </div>
         <AutoArea className="track-scene" value={t.scene} placeholder="メモ" aria-label="メモ" onChange={(e) => set({ scene: e.target.value })} />
 
         <div className="track-links">
           {tagNames.map((n, k) => (
-            <span key={k} className="tag">
+            <span key={k} className="meta">
               {n}
             </span>
           ))}
-          <button className="text-btn" onClick={() => setLinking((v) => !v)} aria-expanded={linking}>
-            {linking ? '閉じる' : tagNames.length ? '人物・場面を変更' : '＋ 人物・場面に結びつける'}
+          <button className="btn" onClick={() => setLinking((v) => !v)} aria-expanded={linking}>
+            {linking ? '閉じる' : '人物・場面'}
           </button>
         </div>
 
         {linking && (
           <div className="link-panel">
             <div>
-              <p className="link-label">人物</p>
-              <div className="chip-row">
+              <p className="field-label">人物</p>
+              <div className="seg">
                 {work.characters.map((c) => (
-                  <button key={c.id} className={'chip' + (links.characterIds.includes(c.id) ? ' on' : '')} onClick={() => toggle('characterIds', c.id)}>
+                  <button key={c.id} className={'seg-btn' + (links.characterIds.includes(c.id) ? ' on' : '')} onClick={() => toggle('characterIds', c.id)}>
                     {c.name || '名前未設定'}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <p className="link-label">章</p>
-              <div className="chip-row">
+              <p className="field-label">章</p>
+              <div className="seg">
                 {chapters.map((c) => (
-                  <button key={c.id} className={'chip' + (links.chapterIds.includes(c.id) ? ' on' : '')} onClick={() => toggle('chapterIds', c.id)}>
+                  <button key={c.id} className={'seg-btn' + (links.chapterIds.includes(c.id) ? ' on' : '')} onClick={() => toggle('chapterIds', c.id)}>
                     {c.title || '無題の章'}
                   </button>
                 ))}
@@ -225,10 +206,10 @@ function TrackRow({ t, i, last, chapters }: { t: Track; i: number; last: boolean
             </div>
             {work.structure.beats.length > 0 && (
               <div>
-                <p className="link-label">構成</p>
-                <div className="chip-row">
+                <p className="field-label">構成</p>
+                <div className="seg">
                   {work.structure.beats.map((b) => (
-                    <button key={b.id} className={'chip' + (links.beatIds.includes(b.id) ? ' on' : '')} onClick={() => toggle('beatIds', b.id)}>
+                    <button key={b.id} className={'seg-btn' + (links.beatIds.includes(b.id) ? ' on' : '')} onClick={() => toggle('beatIds', b.id)}>
                       {b.label || '無題の段階'}
                     </button>
                   ))}
@@ -238,41 +219,26 @@ function TrackRow({ t, i, last, chapters }: { t: Track; i: number; last: boolean
           </div>
         )}
 
-        <div className="track-play">
-          {t.url ? (
-            <a className="text-btn" href={t.url} target="_blank" rel="noreferrer">
-              {service(t.url)} で聴く ↗
-            </a>
-          ) : (
-            <input className="track-url" value={t.url} placeholder="URL を追加" aria-label="URL" onChange={(e) => set({ url: e.target.value })} />
-          )}
-          <button className="text-btn" onClick={() => fileRef.current?.click()}>
-            {t.fileId ? '音声を差し替え' : '音声ファイルを入れる'}
+        <div className="track-links">
+          {(t.fileId || t.url) && <TrackChip t={t} label="聴く" />}
+          <button className="btn" onClick={() => fileRef.current?.click()}>
+            {t.fileId ? '音声を差し替え' : '音声ファイル'}
           </button>
+          <input className="track-url" value={t.url} placeholder="URL" aria-label="URL" inputMode="url" onChange={(e) => set({ url: e.target.value })} />
           <input ref={fileRef} type="file" accept="audio/*" hidden onChange={(e) => onFile(e.target.files?.[0])} />
         </div>
       </div>
-      <div className="track-tools">
-        <button className="icon-btn" disabled={i === 0} onClick={() => move(-1)} aria-label="上へ">
-          <Icon name="up" size={16} />
-        </button>
-        <button className="icon-btn" disabled={last} onClick={() => move(1)} aria-label="下へ">
-          <Icon name="down" size={16} />
-        </button>
-        <button
-          className="icon-btn"
-          aria-label="この曲を削除"
-          onClick={async () => {
-            if (!(await confirmDialog(`「${t.title || '無題の曲'}」をリストから削除します。`))) return
-            update((w) => {
-              w.music = w.music.filter((x) => x.id !== t.id)
-            })
-            await removeFile(t.fileId)
-          }}
-        >
-          <Icon name="trash" size={16} />
-        </button>
-      </div>
+      <RowTools
+        onUp={i > 0 ? () => move(-1) : undefined}
+        onDown={!last ? () => move(1) : undefined}
+        onDelete={async () => {
+          if (!(await confirmDialog(`「${t.title || '無題の曲'}」をリストから削除します。`))) return
+          update((w) => {
+            w.music = w.music.filter((x) => x.id !== t.id)
+          })
+          await removeFile(t.fileId)
+        }}
+      />
     </li>
   )
 }
