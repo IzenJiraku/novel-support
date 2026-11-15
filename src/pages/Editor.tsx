@@ -223,7 +223,7 @@ export default function Editor() {
             ['notes', '資料'],
             ['history', '履歴'],
             ['music', '曲'],
-            ['prefs', '表示'],
+            ['prefs', '体裁'],
           ] as const
         ).map(([k, l]) => (
           <button key={k} className={'seg-btn' + (panel === k ? ' on' : '')} onClick={() => toggle(k)} aria-expanded={panel === k}>
@@ -279,7 +279,7 @@ export default function Editor() {
       )}
 
       {panel === 'prefs' && (
-        <div className="ed-prefs" role="dialog" aria-label="表示の設定">
+        <div className="ed-prefs" role="dialog" aria-label="体裁の設定">
           <div className="field">
             <span className="field-label">組み方</span>
             <div className="seg">
