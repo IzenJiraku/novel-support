@@ -11,12 +11,12 @@
 :root {
   --bg: #f5f2ec;
   --ink: #3a3631;
-  --muted: #8a8378;
+  --muted: #736c61;
   --line: #ddd6ca;
   --ai: #2d4b6e;
   --danger: #a23b3b;
 
-  --t-xs: 11px;
+  --t-xs: 12px;
   --t-s: 13px;
   --t-m: 15px;
   --t-l: 19px;
@@ -306,6 +306,16 @@ a.logo:hover {
 @media (hover: none) {
   .row-tools {
     opacity: 1;
+  }
+  .hide-touch {
+    display: none;
+  }
+  /* 指で押しやすい高さにする */
+  .btn,
+  .seg-btn,
+  .check,
+  .tab {
+    padding-block: var(--s2);
   }
 }
 
@@ -748,6 +758,14 @@ input[type='range']::-moz-range-thumb {
   fill: #f5f2ec;
   font-size: 26px;
 }
+.node-name,
+.node-role {
+  /* 名前の下を線が通っても読めるよう、紙の色でふちを取る */
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 6px;
+  stroke-linejoin: round;
+}
 .node-name {
   fill: var(--ink);
   font-size: var(--t-m);
@@ -848,7 +866,8 @@ input[type='range']::-moz-range-thumb {
   letter-spacing: var(--ls-wide);
 }
 .rk-y {
-  width: 5em;
+  width: 7em;
+  white-space: nowrap;
 }
 .rk-m {
   width: 3em;
@@ -1009,6 +1028,7 @@ input[type='range']::-moz-range-thumb {
 .modal-back {
   position: fixed;
   inset: 0;
+  margin: 0 !important;
   z-index: 60;
   display: grid;
   place-items: center;
@@ -1436,11 +1456,58 @@ input[type='range']::-moz-range-thumb {
   .editor.with-notes .ed-main {
     grid-template-columns: minmax(0, 1fr);
   }
+  .ed-bar {
+    gap: var(--s3);
+    padding-inline: var(--s3);
+  }
+  .ed-top .ed-select {
+    flex: 1 1 0;
+    width: 0 !important;
+    min-width: 0;
+    max-width: none;
+  }
+  .ed-top .ed-spacer {
+    display: none;
+  }
   .ed-notes {
     position: absolute;
     inset: 56px 0 0 0;
     z-index: 2;
     background: var(--bg);
     padding-top: var(--s3);
+  }
+}
+
+@media (max-width: 760px) {
+  .hide-touch {
+    display: none;
+  }
+  /* 目録の選択中がそのまま見出しになるので、重ねて出さない */
+  .sec > .sec-head h2 {
+    display: none;
+  }
+  .sec > .sec-head {
+    justify-content: flex-end;
+    margin-bottom: var(--s3);
+  }
+  .sec > .sec-head:not(:has(.menu)) {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  /* 目次：章名に一行まるごと使い、字数と「書く」はその下に置く */
+  .toc-row {
+    grid-template-columns: 2em minmax(0, 1fr) auto;
+  }
+  .toc-row .toc-name {
+    grid-column: 2 / -1;
+  }
+  .toc-row > .meta:not(:first-child) {
+    grid-column: 2;
+  }
+  /* 並べ替えと削除は、その行に触れているときだけ出す */
+  :is(.toc-row, .beat, .track):not(:focus-within) .row-tools {
+    display: none;
   }
 }

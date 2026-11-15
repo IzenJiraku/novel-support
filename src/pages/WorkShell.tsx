@@ -17,7 +17,7 @@ const TABS = [
   { key: 'cover', label: '表紙' },
   { key: 'cast', label: '相関図' },
   { key: 'plot', label: '構成' },
-  { key: 'toc', label: '目次・本文' },
+  { key: 'toc', label: '目次' },
   { key: 'refs', label: '参考画像' },
   { key: 'music', label: '音楽' },
 ] as const

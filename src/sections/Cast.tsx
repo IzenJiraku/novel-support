@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { PALETTE, newCharacter, uid, type Character, type Relation, type RelationDir, type Work } from '../db'
 import { useWork } from '../workContext'
 import { Modal, confirmDialog, useFileURL } from '../ui'
@@ -246,10 +246,10 @@ export default function Cast() {
           関係を追加
         </button>
         <span className="ed-spacer" />
-        <button className="btn" onClick={() => zoomAt(svgRef.current!.clientWidth / 2, svgRef.current!.clientHeight / 2, view.k * 1.2)}>
+        <button className="btn hide-touch" onClick={() => zoomAt(svgRef.current!.clientWidth / 2, svgRef.current!.clientHeight / 2, view.k * 1.2)}>
           拡大
         </button>
-        <button className="btn" onClick={() => zoomAt(svgRef.current!.clientWidth / 2, svgRef.current!.clientHeight / 2, view.k / 1.2)}>
+        <button className="btn hide-touch" onClick={() => zoomAt(svgRef.current!.clientWidth / 2, svgRef.current!.clientHeight / 2, view.k / 1.2)}>
           縮小
         </button>
         <button className="btn" onClick={fit}>
@@ -301,6 +301,9 @@ function Diagram({ work, view }: { work: Work; view: View }) {
     pairCount.set(key, (pairCount.get(key) ?? 0) + 1)
   }
 
+  // 線をすべて引いてから札を重ねる（札の上を別の線が横切らないように）
+  const labels: ReactNode[] = []
+
   return (
     <>
       <defs>
@@ -342,7 +345,7 @@ function Diagram({ work, view }: { work: Work; view: View }) {
           const my = 0.25 * sy + 0.5 * cy + 0.25 * ey
           const marker = `url(#arr-${r.color.slice(1)})`
           const w = Math.max(40, [...r.label].length * 14 + 18)
-          return (
+          const path = (
             <g key={r.id} className="edge" data-edge={r.id}>
               <path
                 d={`M${sx} ${sy} Q${cx} ${cy} ${ex} ${ey}`}
@@ -353,17 +356,20 @@ function Diagram({ work, view }: { work: Work; view: View }) {
                 markerStart={r.dir === 'both' ? marker : undefined}
               />
               <path d={`M${sx} ${sy} Q${cx} ${cy} ${ex} ${ey}`} fill="none" stroke="transparent" strokeWidth={16} />
-              {r.label && (
-                <g transform={`translate(${mx} ${my})`} className="edge-label">
-                  <rect x={-w / 2} y={-13} width={w} height={26} />
-                  <text textAnchor="middle" dy="0.35em" fill={r.color}>
-                    {r.label}
-                  </text>
-                </g>
-              )}
             </g>
           )
+          if (r.label)
+            labels.push(
+              <g key={r.id} transform={`translate(${mx} ${my})`} className="edge edge-label" data-edge={r.id}>
+                <rect x={-w / 2} y={-13} width={w} height={26} />
+                <text textAnchor="middle" dy="0.35em" fill={r.color}>
+                  {r.label}
+                </text>
+              </g>,
+            )
+          return path
         })}
+        {labels}
         {work.characters.map((c) => (
           <Node key={c.id} c={c} />
         ))}

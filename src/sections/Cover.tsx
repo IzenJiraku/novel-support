@@ -1,20 +1,30 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { defaultCover, downloadBlob, prepareImage, removeFile, safeName, saveFile, uid, type CoverSettings, type TextLayer } from '../db'
 import { useWork } from '../workContext'
-import { FileImage, Menu, Modal, fileURL, toast } from '../ui'
+import { FileImage, Menu, Modal, fileURL } from '../ui'
 import { COVER_H, COVER_W, FONTS, PRESETS, ensureLayer, renderCover } from './coverRender'
 
-type Target = 'bg' | 'title' | 'copy' | 'author'
 type LayerKey = 'title' | 'copy' | 'author'
+type Target = 'bg' | 'title' | 'copy' | 'author'
+type Panel = 'preset' | 'photo' | 'tone' | LayerKey
+const PANELS: [Panel, string][] = [
+  ['preset', '型'],
+  ['photo', '写真'],
+  ['tone', '色と質感'],
+  ['title', 'タイトル'],
+  ['copy', 'コピー'],
+  ['author', '作者名'],
+]
 
 export default function Cover() {
   const { work, update } = useWork()
   const s: CoverSettings = { ...defaultCover(), ...work.cover }
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
-  const [target, setTarget] = useState<Target>('title')
+  const [panel, setPanel] = useState<Panel>('preset')
+  // プレビューを指で動かす対象は、開いている項目に合わせる
+  const target: Target = panel === 'title' || panel === 'copy' || panel === 'author' ? panel : 'bg'
   const [picker, setPicker] = useState(false)
-  const [saving, setSaving] = useState(false)
 
   const texts = {
     title: s.title.text ?? work.title,
@@ -30,6 +40,13 @@ export default function Cover() {
       const url = s.bgId ? await fileURL(s.bgId) : null
       if (seq !== drawSeq.current || !canvasRef.current) return
       await renderCover(canvasRef.current, s, texts, url)
+      // 最初の描画では保存せず、手を入れたあとだけ、少し待ってから表紙として保存する
+      if (drawn.current) {
+        window.clearTimeout(saveTimer.current)
+        pending.current = canvasRef.current
+        saveTimer.current = window.setTimeout(() => void saveRef.current(), 900)
+      }
+      drawn.current = true
     })
     return () => cancelAnimationFrame(raf)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -82,25 +99,29 @@ export default function Cover() {
     })
   }
 
+  const drawn = useRef(false)
+  const saveTimer = useRef<number | undefined>(undefined)
+  const pending = useRef<HTMLCanvasElement | null>(null)
+  const workRef = useRef(work)
+  workRef.current = work
   const saveAsCover = async () => {
-    const c = canvasRef.current
+    window.clearTimeout(saveTimer.current)
+    const c = pending.current
+    pending.current = null
     if (!c) return
-    setSaving(true)
     const blob = await new Promise<Blob | null>((res) => c.toBlob(res, 'image/jpeg', 0.9))
-    if (!blob) {
-      setSaving(false)
-      toast('表紙を書き出せませんでした')
-      return
-    }
-    const id = await saveFile(work.id, blob, 'cover.jpg')
-    const old = work.coverImageId
+    if (!blob) return
+    const id = await saveFile(workRef.current.id, blob, 'cover.jpg')
+    const old = workRef.current.coverImageId
     update((w) => {
       w.coverImageId = id
     })
     await removeFile(old)
-    setSaving(false)
-    toast('表紙として保存しました。作品一覧に表示されます')
   }
+  const saveRef = useRef(saveAsCover)
+  saveRef.current = saveAsCover
+  // 保存を待っている途中でページを離れても、取りこぼさない
+  useEffect(() => () => void saveRef.current(), [])
 
   const downloadPng = () => {
     canvasRef.current?.toBlob((b) => b && downloadBlob(safeName(work.title) + '_表紙.png', b), 'image/png')
@@ -123,36 +144,26 @@ export default function Cover() {
             ref={canvasRef}
             width={COVER_W}
             height={COVER_H}
-            className={'cover-canvas drag-' + target}
+            className="cover-canvas"
             onPointerDown={onDown}
             onPointerMove={onMove}
             onPointerUp={onUp}
             onPointerCancel={onUp}
             aria-label="表紙のプレビュー"
           />
-          <div className="seg drag-target" role="group" aria-label="ドラッグで動かすもの">
-            {(
-              [
-                ['bg', '写真'],
-                ['title', 'タイトル'],
-                ['copy', 'コピー'],
-                ['author', '作者名'],
-              ] as [Target, string][]
-            ).map(([k, l]) => (
-              <button key={k} className={'seg-btn' + (target === k ? ' on' : '')} onClick={() => setTarget(k)}>
+        </div>
+
+        <div className="cover-controls">
+          <div className="seg" role="group" aria-label="調整する項目">
+            {PANELS.map(([k, l]) => (
+              <button key={k} className={'seg-btn' + (panel === k ? ' on' : '')} onClick={() => setPanel(k)}>
                 {l}
               </button>
             ))}
           </div>
-          <div className="row">
-            <button className="btn primary" onClick={saveAsCover} disabled={saving}>
-              {saving ? '保存しています…' : '表紙として保存'}
-            </button>
-          </div>
-        </div>
 
-        <div className="cover-controls">
-          <Group title="テンプレート">
+          {panel === 'preset' && (
+          <Group>
             <div className="seg">
               {Object.entries(PRESETS).map(([k, p]) => (
                 <button key={k} className={'seg-btn' + (s.preset === k ? ' on' : '')} onClick={() => setS((c) => Object.assign(c, p.apply(c)))}>
@@ -161,8 +172,10 @@ export default function Cover() {
               ))}
             </div>
           </Group>
+          )}
 
-          <Group title="写真">
+          {panel === 'photo' && (
+          <Group>
             <div className="row">
               <button className="btn" onClick={() => fileRef.current?.click()}>
                 写真を選ぶ
@@ -194,8 +207,10 @@ export default function Cover() {
               </label>
             )}
           </Group>
+          )}
 
-          <Group title="色と質感">
+          {panel === 'tone' && (
+          <Group>
             <div className="row">
               <label className="field inline">
                 <span className="field-label">色をかぶせる</span>
@@ -240,10 +255,11 @@ export default function Cover() {
               </div>
             </div>
           </Group>
+          )}
 
-          <LayerControls title="タイトル" k="title" l={ensureLayer(s.title)} text={texts.title} setL={setL} multiline />
-          <LayerControls title="キャッチコピー" k="copy" l={ensureLayer(s.copy)} text={texts.copy} setL={setL} multiline />
-          <LayerControls title="作者名" k="author" l={ensureLayer(s.author)} text={texts.author} setL={setL} />
+          {panel === 'title' && <LayerControls k="title" l={ensureLayer(s.title)} text={texts.title} setL={setL} multiline />}
+          {panel === 'copy' && <LayerControls k="copy" l={ensureLayer(s.copy)} text={texts.copy} setL={setL} multiline />}
+          {panel === 'author' && <LayerControls k="author" l={ensureLayer(s.author)} text={texts.author} setL={setL} />}
         </div>
       </div>
 
@@ -275,13 +291,8 @@ export default function Cover() {
   )
 }
 
-function Group({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="cgroup">
-      <h3>{title}</h3>
-      {children}
-    </section>
-  )
+function Group({ children }: { children: ReactNode }) {
+  return <section className="cgroup">{children}</section>
 }
 
 function Range({ label, min, max, step = 1, v, on, fmt }: { label: string; min: number; max: number; step?: number; v: number; on: (v: number) => void; fmt: (v: number) => string }) {
@@ -295,14 +306,12 @@ function Range({ label, min, max, step = 1, v, on, fmt }: { label: string; min: 
 }
 
 function LayerControls({
-  title,
   k,
   l,
   text,
   setL,
   multiline,
 }: {
-  title: string
   k: LayerKey
   l: TextLayer
   text: string
@@ -310,7 +319,7 @@ function LayerControls({
   multiline?: boolean
 }) {
   return (
-    <Group title={title}>
+    <Group>
       <label className="field">
         <span className="field-label">文字</span>
         {multiline ? (

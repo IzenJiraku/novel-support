@@ -80,12 +80,7 @@ export default function Overview() {
               </select>
             </label>
           </div>
-          <TextField
-            label="ひとことで言うと"
-            value={work.logline}
-            onChange={set('logline')}
-           
-          />
+          <AreaField label="ひとことで言うと" value={work.logline} onChange={set('logline')} />
           <AreaField label="あらすじ" count value={work.synopsis} onChange={set('synopsis')} />
           <AreaField label="テーマ・書きたいこと" value={work.theme} onChange={set('theme')} />
           <AreaField label="メモ" value={work.memo} onChange={set('memo')} />
