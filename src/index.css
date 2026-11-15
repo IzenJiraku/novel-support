@@ -1,5 +1,5 @@
 /* Solo Study
-   生成りの紙に、細い明朝だけを置く。
+   白い紙に、細い明朝だけを置く。
    決まりごとはこのファイルの先頭にある分だけで、どの画面も同じものを使う。
 
    文字   5段階（--t-xs / s / m / l / xl）。太さは 400 のみ。
@@ -9,8 +9,8 @@
    操作   押せるものは薄墨の文字。主役は藍、消すものは朱。選択中は墨＋下線。 */
 
 :root {
-  --bg: #f5f2ec;
-  --ink: #3a3631;
+  --bg: #ffffff;
+  --ink: #26231f;
   --muted: #736c61;
   --line: #ddd6ca;
   --ai: #2d4b6e;
@@ -34,11 +34,11 @@
   --s6: 72px;
 
   --f-latin: 'Cormorant Garamond', 'Times New Roman';
-  --f-body: var(--f-latin), 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  --f-body: var(--f-latin), 'Zen Old Mincho', 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
 
   /* 執筆画面の紙（書き手が選ぶ） */
-  --paper-bg: #fbf9f5;
-  --paper-ink: #2b2b2b;
+  --paper-bg: #ffffff;
+  --paper-ink: #222222;
   --kinari-bg: #f3eee5;
   --kinari-ink: #3d362e;
   --night-bg: #151515;
@@ -81,9 +81,7 @@ body,
 }
 body {
   margin: 0;
-  /* 紙肌：ごく薄い粒子だけを重ねる */
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .38 0 0 0 0 .3 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
-    var(--bg);
+  background: var(--bg);
   color: var(--ink);
   font-family: var(--f-body);
   font-size: var(--t-m);
@@ -754,33 +752,27 @@ input[type='range']::-moz-range-thumb {
   cursor: pointer;
   outline: none;
 }
-.node-initial {
-  fill: #f5f2ec;
-  font-size: 26px;
-}
-.node-name,
-.node-role {
-  /* 名前の下を線が通っても読めるよう、紙の色でふちを取る */
-  paint-order: stroke;
-  stroke: var(--bg);
-  stroke-width: 6px;
-  stroke-linejoin: round;
+.node-hit {
+  fill: var(--bg);
 }
 .node-name {
   fill: var(--ink);
-  font-size: var(--t-m);
+  font-size: var(--t-l);
   letter-spacing: var(--ls-wide);
 }
 .node-role {
   fill: var(--muted);
-  font-size: var(--t-xs);
+  font-size: var(--t-s);
   letter-spacing: var(--ls-wide);
+}
+.node:focus-visible .node-name {
+  fill: var(--ai);
 }
 .edge-label rect {
   fill: var(--bg);
 }
 .edge-label text {
-  font-size: var(--t-s);
+  font-size: var(--t-m);
   letter-spacing: var(--ls);
 }
 .cast-list {
@@ -1030,8 +1022,9 @@ input[type='range']::-moz-range-thumb {
   inset: 0;
   margin: 0 !important;
   z-index: 60;
-  display: grid;
-  place-items: center;
+  /* 中身が画面より長いときも上が切れないよう、中央寄せは .modal の margin: auto に任せる */
+  display: flex;
+  flex-direction: column;
   padding: var(--s4);
   background: var(--bg);
   overflow-y: auto;
@@ -1041,6 +1034,7 @@ input[type='range']::-moz-range-thumb {
   flex-direction: column;
   gap: var(--s4);
   width: min(440px, 100%);
+  flex: none;
   margin: auto;
   animation: rise 0.2s ease both;
 }
@@ -1212,6 +1206,7 @@ input[type='range']::-moz-range-thumb {
   width: min(38em, 100%) !important;
   text-align: center;
   font-family: var(--ed-font, var(--f-body));
+  font-weight: var(--ed-weight, 400);
   font-size: calc(var(--ed-size) * 1.15);
   letter-spacing: var(--ls-wide);
   padding: var(--s2) 0 !important;
@@ -1223,6 +1218,7 @@ input[type='range']::-moz-range-thumb {
   overflow: auto;
   padding: var(--s3) 0 40vh !important;
   font-family: var(--ed-font, var(--f-body));
+  font-weight: var(--ed-weight, 400);
   font-size: var(--ed-size);
   line-height: var(--ed-lh) !important;
   letter-spacing: 0.04em;

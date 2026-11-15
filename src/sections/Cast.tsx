@@ -4,7 +4,24 @@ import { useWork } from '../workContext'
 import { Modal, confirmDialog, useFileURL } from '../ui'
 import Profile from './Profile'
 
-const R = 38
+const PHOTO_R = 30
+const PHOTO_CY = 58
+
+/** 人物の札の大きさ（中心からの幅と上下）。名前をそのまま出すので、字数で幅が決まる */
+function nodeBox(c: Pick<Character, 'name' | 'role' | 'photoId'>) {
+  const wide = (s: string) => [...s].reduce((n, ch) => n + (/[ -~\s]/.test(ch) ? 12 : 23), 0)
+  const hw = Math.max(48, wide(c.name || '名前未設定') / 2 + 16, wide(c.role) * 0.62 / 2 + 16)
+  const half = c.role ? 34 : 24
+  return { hw, top: c.photoId ? -(PHOTO_CY + PHOTO_R + 6) : -half, bottom: half }
+}
+
+/** 札の中心から (ux, uy) の向きへ進んで、札の外へ出るまでの距離 */
+function edgeOut(c: Pick<Character, 'name' | 'role' | 'photoId'>, ux: number, uy: number, gap: number) {
+  const b = nodeBox(c)
+  const tx = ux === 0 ? Infinity : (b.hw + gap) / Math.abs(ux)
+  const ty = uy === 0 ? Infinity : ((uy > 0 ? b.bottom : -b.top) + gap) / Math.abs(uy)
+  return Math.min(tx, ty)
+}
 
 interface View {
   tx: number
@@ -32,7 +49,7 @@ export default function Cast() {
     }
     const xs = cs.map((c) => c.x)
     const ys = cs.map((c) => c.y)
-    const pad = 90
+    const pad = 130
     const minX = Math.min(...xs) - pad
     const maxX = Math.max(...xs) + pad
     const minY = Math.min(...ys) - pad
@@ -337,14 +354,16 @@ function Diagram({ work, view }: { work: Work; view: View }) {
           }
           const [ux, uy] = unit(cx - a.x, cy - a.y)
           const [vx, vy] = unit(cx - b.x, cy - b.y)
-          const sx = a.x + ux * (R + 4)
-          const sy = a.y + uy * (R + 4)
-          const ex = b.x + vx * (R + 6)
-          const ey = b.y + vy * (R + 6)
+          const da = edgeOut(a, ux, uy, 6)
+          const db = edgeOut(b, vx, vy, 8)
+          const sx = a.x + ux * da
+          const sy = a.y + uy * da
+          const ex = b.x + vx * db
+          const ey = b.y + vy * db
           const mx = 0.25 * sx + 0.5 * cx + 0.25 * ex
           const my = 0.25 * sy + 0.5 * cy + 0.25 * ey
           const marker = `url(#arr-${r.color.slice(1)})`
-          const w = Math.max(40, [...r.label].length * 14 + 18)
+          const w = Math.max(44, [...r.label].length * 16 + 20)
           const path = (
             <g key={r.id} className="edge" data-edge={r.id}>
               <path
@@ -380,27 +399,30 @@ function Diagram({ work, view }: { work: Work; view: View }) {
 
 function Node({ c }: { c: Character }) {
   const url = useFileURL(c.photoId)
+  const b = nodeBox(c)
+  const nameY = c.role ? -8 : 0
   return (
     <g className="node" data-node={c.id} transform={`translate(${c.x} ${c.y})`} tabIndex={0} role="button" aria-label={`${c.name || '名前未設定'}のプロフィール`}>
-      <clipPath id={'cp-' + c.id}>
-        <circle r={R - 2} />
-      </clipPath>
-      <circle r={R - 2} fill={c.color} />
-      {url ? (
-        <image href={url} x={-(R - 2)} y={-(R - 2)} width={(R - 2) * 2} height={(R - 2) * 2} clipPath={`url(#cp-${c.id})`} preserveAspectRatio="xMidYMid slice" />
-      ) : (
-        <text className="node-initial" textAnchor="middle" dy="0.36em">
-          {(c.name || '？').slice(0, 1)}
-        </text>
+      <rect className="node-hit" x={-b.hw} y={b.top} width={b.hw * 2} height={b.bottom - b.top} />
+      {c.photoId && (
+        <>
+          <clipPath id={'cp-' + c.id}>
+            <circle cy={-PHOTO_CY} r={PHOTO_R} />
+          </clipPath>
+          {url && (
+            <image href={url} x={-PHOTO_R} y={-PHOTO_CY - PHOTO_R} width={PHOTO_R * 2} height={PHOTO_R * 2} clipPath={`url(#cp-${c.id})`} preserveAspectRatio="xMidYMid slice" />
+          )}
+        </>
       )}
-      <text className="node-name" textAnchor="middle" y={R + 22}>
+      <text className="node-name" textAnchor="middle" y={nameY} dy="0.35em">
         {c.name || '名前未設定'}
       </text>
       {c.role && (
-        <text className="node-role" textAnchor="middle" y={R + 40}>
+        <text className="node-role" textAnchor="middle" y={16} dy="0.35em">
           {c.role}
         </text>
       )}
+      <line x1={-b.hw + 10} x2={b.hw - 10} y1={b.bottom - 4} y2={b.bottom - 4} stroke={c.color} strokeWidth={1.5} />
     </g>
   )
 }

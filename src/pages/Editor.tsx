@@ -13,6 +13,8 @@ export const WRITING_FONTS = [
   { id: 'oldmincho', label: '旧明朝', family: "'Zen Old Mincho', serif", note: '古書のよう' },
   { id: 'hina', label: 'ひな明朝', family: "'Hina Mincho', serif", note: 'やわらか' },
   { id: 'serif', label: 'Noto 明朝', family: "'Noto Serif JP', serif", note: '読みやすい' },
+  { id: 'serif-light', label: 'Noto 明朝 細', family: "'Noto Serif JP', serif", note: '繊細', weight: 300 },
+  { id: 'serif-thin', label: 'Noto 明朝 極細', family: "'Noto Serif JP', serif", note: 'ごく細い', weight: 200 },
   { id: 'gothic', label: 'M+ ゴシック', family: "'M PLUS 1', sans-serif", note: 'すっきり' },
   { id: 'maru', label: '丸ゴシック', family: "'Zen Maru Gothic', sans-serif", note: 'まるい' },
   { id: 'kiwi', label: 'キウイ丸', family: "'Kiwi Maru', serif", note: 'あたたか' },
@@ -29,7 +31,7 @@ interface Prefs {
   theme: 'paper' | 'kinari' | 'night'
 }
 const PREF_KEY = 'shosai-editor-prefs'
-const defaultPrefs: Prefs = { vertical: false, font: 'mincho', size: 18, lineHeight: 2, theme: 'paper' }
+const defaultPrefs: Prefs = { vertical: false, font: 'oldmincho', size: 18, lineHeight: 2, theme: 'paper' }
 
 function loadPrefs(): Prefs {
   try {
@@ -195,7 +197,7 @@ export default function Editor() {
   return (
     <div
       className={`editor theme-${prefs.theme}${prefs.vertical ? ' vertical' : ''}${quiet ? ' quiet' : ''}${panel === 'notes' ? ' with-notes' : ''}`}
-      style={{ ['--ed-size' as string]: prefs.size + 'px', ['--ed-lh' as string]: prefs.lineHeight, ['--ed-font' as string]: font.family }}
+      style={{ ['--ed-size' as string]: prefs.size + 'px', ['--ed-lh' as string]: prefs.lineHeight, ['--ed-font' as string]: font.family, ['--ed-weight' as string]: 'weight' in font ? font.weight : 400 }}
       onMouseMove={() => quiet && setQuiet(false)}
     >
       <header className="ed-bar ed-top">
@@ -295,7 +297,7 @@ export default function Editor() {
             <span className="field-label">書体</span>
             <div className="seg">
               {WRITING_FONTS.map((f) => (
-                <button key={f.id} className={'seg-btn' + (prefs.font === f.id ? ' on' : '')} style={{ fontFamily: f.family }} onClick={() => setPrefs({ ...prefs, font: f.id })}>
+                <button key={f.id} className={'seg-btn' + (prefs.font === f.id ? ' on' : '')} style={{ fontFamily: f.family, fontWeight: 'weight' in f ? f.weight : 400 }} onClick={() => setPrefs({ ...prefs, font: f.id })}>
                   {f.label}
                 </button>
               ))}
