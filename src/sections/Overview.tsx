@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { STATUSES, deleteWork, downloadBlob, exportWorkJSON, exportWorkText, safeName, type WorkStatus } from '../db'
+import { STATUSES, deleteWork, downloadBlob, restoreWork, exportWorkJSON, exportWorkText, safeName, type WorkStatus } from '../db'
 import { useWork } from '../workContext'
 import { AreaField, TextField } from '../components/Field'
 import CoverThumb from '../components/CoverThumb'
@@ -14,10 +14,11 @@ export default function Overview() {
     })
 
   const onDelete = async () => {
-    if (!(await confirmDialog(`「${work.title || '無題'}」を削除します。本文・表紙・画像・音楽もすべて消え、元に戻せません。`))) return
-    await deleteWork(work.id)
-    toast('作品を削除しました')
+    if (!(await confirmDialog(`「${work.title || '無題'}」を削除します。本文・表紙・画像・音楽もすべて消えます。`))) return
+    await flush()
+    const kept = await deleteWork(work.id)
     nav('/')
+    toast(`「${work.title || '無題'}」を削除しました`, { label: '元に戻す', run: () => restoreWork(kept) })
   }
 
   return (

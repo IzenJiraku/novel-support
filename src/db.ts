@@ -180,6 +180,16 @@ export interface Spark {
   createdAt: number
 }
 
+/** 章の過去の版。書いている途中で自動的に残し、あとから戻せるようにする */
+export interface Snapshot {
+  id: string
+  chapterId: string
+  workId: string
+  title: string
+  body: string
+  createdAt: number
+}
+
 export const PIECE_KINDS = ['人物', '場所', '出来事', 'もの', 'ことば', 'テーマ'] as const
 
 /* ───────── DB ───────── */
@@ -190,6 +200,7 @@ export const db = new Dexie('monogatari-shosai') as Dexie & {
   files: EntityTable<StoredFile, 'id'>
   pieces: EntityTable<Piece, 'id'>
   sparks: EntityTable<Spark, 'id'>
+  snapshots: EntityTable<Snapshot, 'id'>
 }
 
 db.version(1).stores({
@@ -201,6 +212,10 @@ db.version(1).stores({
 db.version(2).stores({
   pieces: 'id, createdAt, kind',
   sparks: 'id, createdAt',
+})
+
+db.version(3).stores({
+  snapshots: 'id, chapterId, workId, createdAt',
 })
 
 /* ───────── ユーティリティ ───────── */
@@ -341,12 +356,50 @@ export async function createWork(p: Partial<Work> = {}) {
   return w.id
 }
 
+/** 作品を消す。戻り値を restoreWork に渡すと元に戻せる */
 export async function deleteWork(id: string) {
-  await db.transaction('rw', db.works, db.chapters, db.files, async () => {
+  return db.transaction('rw', db.works, db.chapters, db.files, db.snapshots, async () => {
+    const kept = {
+      work: await db.works.get(id),
+      chapters: await db.chapters.where('workId').equals(id).toArray(),
+      files: await db.files.where('workId').equals(id).toArray(),
+      snapshots: await db.snapshots.where('workId').equals(id).toArray(),
+    }
     await db.chapters.where('workId').equals(id).delete()
     await db.files.where('workId').equals(id).delete()
+    await db.snapshots.where('workId').equals(id).delete()
     await db.works.delete(id)
+    return kept
   })
+}
+
+export async function restoreWork(kept: Awaited<ReturnType<typeof deleteWork>>) {
+  if (!kept.work) return
+  await db.transaction('rw', db.works, db.chapters, db.files, db.snapshots, async () => {
+    await db.works.put(kept.work!)
+    await db.chapters.bulkPut(kept.chapters)
+    await db.files.bulkPut(kept.files)
+    await db.snapshots.bulkPut(kept.snapshots)
+  })
+}
+
+/* ───────── 章の履歴 ───────── */
+
+const SNAP_KEEP = 40
+export const SNAP_INTERVAL = 10 * 60 * 1000
+
+export const listSnapshots = async (chapterId: string) =>
+  (await db.snapshots.where('chapterId').equals(chapterId).sortBy('createdAt')).reverse()
+
+/** いまの内容を履歴に残す。直前の版と同じ本文なら残さない。古い版は SNAP_KEEP 件を超えた分から消す */
+export async function takeSnapshot(c: Pick<Chapter, 'id' | 'workId' | 'title' | 'body'>) {
+  if (!c.body.trim()) return false
+  const list = await listSnapshots(c.id)
+  if (list[0]?.body === c.body) return false
+  await db.snapshots.add({ id: uid(), chapterId: c.id, workId: c.workId, title: c.title, body: c.body, createdAt: Date.now() })
+  const extra = list.slice(SNAP_KEEP - 1)
+  if (extra.length) await db.snapshots.bulkDelete(extra.map((x) => x.id))
+  return true
 }
 
 /** 作品の本文の合計文字数（保存は呼び出し側の update で行う） */
@@ -403,22 +456,84 @@ const blobToDataURL = (b: Blob) =>
     r.readAsDataURL(b)
   })
 
-export async function exportWorkJSON(workId: string) {
+interface PackedFile {
+  id: string
+  name: string
+  type: string
+  data: string
+}
+interface PackedWork {
+  work: Work
+  chapters: Chapter[]
+  files: PackedFile[]
+}
+
+async function packWork(workId: string): Promise<PackedWork | null> {
   const work = await db.works.get(workId)
+  if (!work) return null
   const chapters = await db.chapters.where('workId').equals(workId).sortBy('order')
   const files = await db.files.where('workId').equals(workId).toArray()
   const fileData = await Promise.all(
     files.map(async (f) => ({ id: f.id, name: f.name, type: f.type, data: await blobToDataURL(f.blob) })),
   )
-  // 断片とひらめきは作品をまたぐものなので、どの作品のバックアップにも全部入れておく
-  const pieces = await db.pieces.toArray()
-  const sparks = await db.sparks.toArray()
-  return JSON.stringify({ format: 'monogatari-shosai', version: 1, work, chapters, files: fileData, pieces, sparks })
+  return { work, chapters, files: fileData }
 }
 
-export async function importWorkJSON(text: string) {
-  const data = JSON.parse(text)
-  if (data.format !== 'monogatari-shosai' || !data.work) throw new Error('Solo Study のバックアップファイルではありません')
+/** 作品ひとつのバックアップ。断片とひらめきは作品をまたぐものなので、どのバックアップにも全部入れておく */
+export async function exportWorkJSON(workId: string) {
+  const packed = await packWork(workId)
+  const pieces = await db.pieces.toArray()
+  const sparks = await db.sparks.toArray()
+  return JSON.stringify({ format: 'monogatari-shosai', version: 1, ...packed, pieces, sparks })
+}
+
+/** 書斎まるごとのバックアップ。別の端末で読み込むと、作品ごとに新しいほうが残る */
+export async function exportLibraryJSON() {
+  const ids = await db.works.toCollection().primaryKeys()
+  const works = (await Promise.all(ids.map((id) => packWork(id)))).filter((w): w is PackedWork => !!w)
+  const pieces = await db.pieces.toArray()
+  const sparks = await db.sparks.toArray()
+  return JSON.stringify({ format: 'monogatari-shosai', version: 2, kind: 'library', exportedAt: Date.now(), works, pieces, sparks })
+}
+
+// 画像や音声は、DBの処理を始める前に元の形へ戻しておく（処理の途中で待つとDBの処理が打ち切られるため）
+const unpackFiles = (files: PackedFile[]) =>
+  Promise.all((files || []).map(async (f) => ({ ...f, blob: await (await fetch(f.data)).blob() })))
+
+async function mergePieces(data: { pieces?: Piece[]; sparks?: Spark[] }, mapWorkId: (id: string | null) => Promise<string | null>) {
+  // 断片・ひらめきは同じものがすでにあれば残し、無いものだけ足す
+  for (const p of data.pieces ?? []) if (!(await db.pieces.get(p.id))) await db.pieces.add(p)
+  for (const sp of data.sparks ?? []) {
+    if (await db.sparks.get(sp.id)) continue
+    await db.sparks.add({ ...sp, workId: await mapWorkId(sp.workId) })
+  }
+}
+
+const ALL_TABLES = () => [db.works, db.chapters, db.files, db.pieces, db.sparks, db.snapshots]
+
+export interface ImportResult {
+  /** 読み込んだあとに開く作品（ひとつだけ読み込んだとき） */
+  openId: string | null
+  added: number
+  updated: number
+  kept: number
+}
+
+export async function importBackupJSON(text: string): Promise<ImportResult> {
+  let data
+  try {
+    data = JSON.parse(text)
+  } catch {
+    throw new Error('Solo Study のバックアップファイルではありません')
+  }
+  if (data?.format !== 'monogatari-shosai') throw new Error('Solo Study のバックアップファイルではありません')
+  if (data.kind === 'library' && Array.isArray(data.works)) return importLibrary(data)
+  if (!data.work) throw new Error('Solo Study のバックアップファイルではありません')
+  return { openId: await importSingle(data), added: 1, updated: 0, kept: 0 }
+}
+
+/** 作品ひとつのバックアップは、いまある作品を上書きしないよう、いつも新しい作品として足す */
+async function importSingle(data: PackedWork & { pieces?: Piece[]; sparks?: Spark[] }) {
   const newId = uid()
   const idMap = new Map<string, string>()
   for (const f of data.files || []) idMap.set(f.id, uid())
@@ -431,22 +546,46 @@ export async function importWorkJSON(text: string) {
   const chMap = new Map<string, string>()
   for (const c of data.chapters || []) chMap.set(c.id, uid())
   w.music = w.music.map((m) => ({ ...m, fileId: remap(m.fileId), chapterIds: (m.chapterIds ?? []).map((id) => chMap.get(id) ?? id) }))
-  await db.transaction('rw', [db.works, db.chapters, db.files, db.pieces, db.sparks], async () => {
+  const files = await unpackFiles(data.files)
+  await db.transaction('rw', ALL_TABLES(), async () => {
     await db.works.add(w)
-    // 断片・ひらめきは同じものがすでにあれば残し、無いものだけ足す
-    for (const p of (data.pieces ?? []) as Piece[]) if (!(await db.pieces.get(p.id))) await db.pieces.add(p)
-    for (const sp of (data.sparks ?? []) as Spark[]) {
-      if (await db.sparks.get(sp.id)) continue
-      const wid = sp.workId === data.work.id ? newId : sp.workId && (await db.works.get(sp.workId)) ? sp.workId : null
-      await db.sparks.add({ ...sp, workId: wid })
-    }
+    await mergePieces(data, async (id) => (id === data.work.id ? newId : id && (await db.works.get(id)) ? id : null))
     for (const c of data.chapters || []) await db.chapters.add({ ...c, id: chMap.get(c.id)!, workId: newId })
-    for (const f of data.files || []) {
-      const blob = await (await fetch(f.data)).blob()
-      await db.files.add({ id: idMap.get(f.id)!, workId: newId, blob, type: f.type, name: f.name, createdAt: Date.now() })
-    }
+    for (const f of files) await db.files.add({ id: idMap.get(f.id)!, workId: newId, blob: f.blob, type: f.type, name: f.name, createdAt: Date.now() })
   })
   return newId
+}
+
+/** 書斎まるごとの読み込み。同じ作品があれば、更新が新しいほうを残す */
+async function importLibrary(data: { works: PackedWork[]; pieces?: Piece[]; sparks?: Spark[] }): Promise<ImportResult> {
+  const res: ImportResult = { openId: null, added: 0, updated: 0, kept: 0 }
+  const works = data.works.filter((p) => p?.work?.id)
+  const unpacked = await Promise.all(works.map(async (p) => ({ ...p, blobs: await unpackFiles(p.files) })))
+  await db.transaction('rw', ALL_TABLES(), async () => {
+    for (const p of unpacked) {
+      const w: Work = { ...newWork(), ...p.work }
+      w.cover = { ...defaultCover(), ...w.cover }
+      const cur = await db.works.get(w.id)
+      if (cur && cur.updatedAt >= w.updatedAt) {
+        res.kept++
+        continue
+      }
+      if (cur) {
+        // 置き換える前に、いまの本文を履歴へ残しておく
+        for (const c of await db.chapters.where('workId').equals(w.id).toArray()) {
+          if (c.body.trim()) await db.snapshots.add({ id: uid(), chapterId: c.id, workId: w.id, title: c.title, body: c.body, createdAt: Date.now() })
+        }
+        await db.chapters.where('workId').equals(w.id).delete()
+        await db.files.where('workId').equals(w.id).delete()
+        res.updated++
+      } else res.added++
+      await db.works.put(w)
+      await db.chapters.bulkPut((p.chapters || []).map((c) => ({ ...c, workId: w.id })))
+      await db.files.bulkPut(p.blobs.map((f) => ({ id: f.id, workId: w.id, blob: f.blob, type: f.type, name: f.name, createdAt: Date.now() })))
+    }
+    await mergePieces(data, async (id) => (id && (await db.works.get(id)) ? id : null))
+  })
+  return res
 }
 
 export async function exportWorkText(workId: string) {

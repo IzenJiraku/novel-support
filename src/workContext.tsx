@@ -61,15 +61,27 @@ export function WorkProvider({ id, children, fallback }: { id: string; children:
   )
 
   useEffect(() => {
-    const onHide = () => void flush()
-    window.addEventListener('pagehide', onHide)
+    // 隠れるときは保存。戻ってきたときは、別のタブや読み込みで変わっていれば取り込む
+    const onHide = () => {
+      if (document.visibilityState === 'visible') {
+        if (dirty.current) return
+        void db.works.get(id).then((w) => {
+          if (w && !dirty.current && ref.current && w.updatedAt > ref.current.updatedAt) {
+            ref.current = w
+            setWork(w)
+          }
+        })
+      } else void flush()
+    }
+    const onLeave = () => void flush()
+    window.addEventListener('pagehide', onLeave)
     document.addEventListener('visibilitychange', onHide)
     return () => {
-      window.removeEventListener('pagehide', onHide)
+      window.removeEventListener('pagehide', onLeave)
       document.removeEventListener('visibilitychange', onHide)
       void flush()
     }
-  }, [flush])
+  }, [flush, id])
 
   if (work === undefined) return <>{fallback}</>
   if (work === null)

@@ -121,17 +121,29 @@ export function confirmDialog(message: string, okLabel = '削除する'): Promis
 
 let toastEl: HTMLDivElement | null = null
 let toastTimer: number | undefined
-export function toast(msg: string) {
+/** 画面下に短い知らせを出す。action を渡すと「元に戻す」などの操作をひとつ添えられる */
+export function toast(msg: string, action?: { label: string; run: () => void | Promise<void> }) {
   if (!toastEl) {
     toastEl = document.createElement('div')
     toastEl.className = 'toast'
     toastEl.setAttribute('role', 'status')
     document.body.appendChild(toastEl)
   }
-  toastEl.textContent = msg
-  toastEl.classList.add('show')
+  const el = toastEl
+  el.textContent = msg
+  if (action) {
+    const b = document.createElement('button')
+    b.className = 'btn primary'
+    b.textContent = action.label
+    b.onclick = () => {
+      el.classList.remove('show')
+      void action.run()
+    }
+    el.appendChild(b)
+  }
+  el.classList.add('show')
   window.clearTimeout(toastTimer)
-  toastTimer = window.setTimeout(() => toastEl?.classList.remove('show'), 2400)
+  toastTimer = window.setTimeout(() => el.classList.remove('show'), action ? 9000 : 2400)
 }
 
 /* ───────── たまにしか使わない操作をしまっておくメニュー ───────── */
@@ -185,6 +197,38 @@ export function RowTools({ onUp, onDown, onDelete }: { onUp?: () => void; onDown
 export const fmtDate = (t: number) => {
   const d = new Date(t)
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`
+}
+
+export const fmtDateTime = (t: number) => {
+  const d = new Date(t)
+  return `${fmtDate(t)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+/**
+ * DBに直接つながった入力欄。打っている間は手元の値を表示し、DBからの反映で
+ * 日本語変換やカーソル位置が乱れないようにする。
+ */
+export function LiveInput({ value, onCommit, ...rest }: { value: string; onCommit: (v: string) => void } & Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'>) {
+  const [v, setV] = useState(value)
+  const focused = useRef(false)
+  useEffect(() => {
+    if (!focused.current) setV(value)
+  }, [value])
+  return (
+    <input
+      {...rest}
+      value={v}
+      onFocus={() => (focused.current = true)}
+      onBlur={() => {
+        focused.current = false
+        if (v !== value) onCommit(v)
+      }}
+      onChange={(e) => {
+        setV(e.target.value)
+        onCommit(e.target.value)
+      }}
+    />
+  )
 }
 
 export const fmtNum = (n: number) => n.toLocaleString('ja-JP')
